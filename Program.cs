@@ -30,6 +30,9 @@ namespace ChatApp
                 .AddEntityFrameworkStores<DBContext>()
                 .AddDefaultTokenProviders();
 
+            builder.Services.AddControllersWithViews();
+            builder.Services.AddSignalR();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -50,7 +53,7 @@ namespace ChatApp
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Account}/{action=LogIn}/{id?}");
 
             app.Run();
         }
