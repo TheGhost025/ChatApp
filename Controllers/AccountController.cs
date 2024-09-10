@@ -57,7 +57,7 @@ namespace ChatApp.Controllers
                     PhotoName = uniqueFileName,
                     PhoneNumber = registerViewModel.PhoneNumber,
                 };
-                var result = await _userManager.CreateAsync(user);
+                var result = await _userManager.CreateAsync(user,registerViewModel.Password);
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
@@ -85,9 +85,16 @@ namespace ChatApp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(logInViewModel.Email, logInViewModel.Password, logInViewModel.RememberMe , lockoutOnFailure: false);
                 if(result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Register", "Account");
                 }
-                ModelState.AddModelError(string.Empty, "Invaild login attempt");
+                if (result.IsLockedOut)
+                {
+                    ModelState.AddModelError(string.Empty, "User account locked out.");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                }
             }
             return View(logInViewModel);
         }

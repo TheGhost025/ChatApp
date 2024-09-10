@@ -1,5 +1,8 @@
 ﻿@model ChatApp.Models.RegisterViewModel
 
+<!-- Display validation summary for the form -->
+<div asp-validation-summary="All" class="text-danger"></div>
+
 <form asp-action="Register" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label asp-for="FirstName" class="control-label"></label>
