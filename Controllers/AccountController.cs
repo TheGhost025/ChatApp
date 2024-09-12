@@ -85,7 +85,7 @@ namespace ChatApp.Controllers
                 var result = await _signInManager.PasswordSignInAsync(logInViewModel.Email, logInViewModel.Password, logInViewModel.RememberMe , lockoutOnFailure: false);
                 if(result.Succeeded)
                 {
-                    return RedirectToAction("Register", "Account");
+                    return RedirectToAction("Index", "Chat");
                 }
                 if (result.IsLockedOut)
                 {

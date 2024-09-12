@@ -1,0 +1,38 @@
+﻿@section Style{
+    <link rel="stylesheet" href="~/css/chat.css" />
+}
+
+<div class="container">
+    <div class="sidebar">
+        <!-- Profile Picture, Chats, Groups -->
+        <div class="profile">
+            <img src="profile.jpg" alt="Profile">
+        </div>
+        <div class="chats-list">
+            <!-- List of chats, friends, groups -->
+            <div>Chat 1</div>
+            <div>Chat 2</div>
+            <div>Group 1</div>
+        </div>
+    </div>
+
+    <div class="chat-input-container">
+        <div class="chat-window">
+            <!-- Chat messages will go here -->
+            <div id="messagesList">
+                <div class="message sent">
+                    <p>Hello, how are you?</p>
+                </div>
+                <div class="message received">
+                    <p>I'm doing well, thank you!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message">
+            <button id="sendButton" class="btn-send">Send</button>
+        </div>
+    </div>
+</div>
+

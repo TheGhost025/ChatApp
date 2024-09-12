@@ -1,3 +1,5 @@
+using ChatApp.Hubs;
+using ChatApp.Services;
 using ChatAppp.Entity;
 using ChatAppp.Models;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +19,8 @@ namespace ChatApp
             // Configure Entity Framework Core with SQL Server
             builder.Services.AddDbContext<DBContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<GroupSrvice>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -54,6 +58,8 @@ namespace ChatApp
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Account}/{action=LogIn}/{id?}");
+
+            app.MapHub<ChatHub>("/chatHub");
 
             app.Run();
         }
