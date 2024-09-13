@@ -3,20 +3,58 @@
 }
 
 <div class="container">
+    <!-- Search Bar for Searching New Users -->
+    <div class="search-bar-new">
+        <input type="text" id="searchNewUserInput" placeholder="Search for new users..." />
+        <button id="searchNewUserButton">Search</button>
+    </div>
+
     <div class="sidebar">
         <!-- Profile Picture, Chats, Groups -->
         <div class="profile">
-            <img src="profile.jpg" alt="Profile">
+            <img src="~/images/b3c5c832-0fc8-4618-9c4f-54bd05dffebd_Screenshot 2024-05-05 044508.png" alt="Profile" />
+            <p>Mazen</p>
         </div>
-        <div class="chats-list">
-            <!-- List of chats, friends, groups -->
+        <!-- Search Bar for Friends and Groups -->
+        <div class="search-bar">
+            <input type="text" id="searchFriendsInput" placeholder="Search Friends or Groups..." />
+            <button id="searchFriendsButton">Search</button>
+        </div>
+
+        <!-- Tabs for Recent, Groups, and Friends -->
+        <div class="tabs">
+            <button class="tab" onclick="showTab('recent')">Recent</button>
+            <button class="tab" onclick="showTab('groups')">Groups</button>
+            <button class="tab" onclick="showTab('friends')">Friends</button>
+        </div>
+
+        <!-- Lists of Chats for each Tab -->
+        <div class="chats-list" id="recentTab">
+            <!-- Recent Chats -->
             <div>Chat 1</div>
             <div>Chat 2</div>
+        </div>
+
+        <div class="chats-list" id="groupsTab" style="display:none;">
+            <!-- Group Chats -->
             <div>Group 1</div>
+            <div>Group 2</div>
+        </div>
+
+        <div class="chats-list" id="friendsTab" style="display:none;">
+            <!-- Friends List -->
+            <div>Friend 1</div>
+            <div>Friend 2</div>
         </div>
     </div>
 
     <div class="chat-input-container">
+
+        <div class="profile">
+            <img src="~/images/735064ea-a89b-4940-9bf5-47e7f076c482_Screenshot 2024-05-04 023023.png" alt="Profile" />
+            <p>Mazenk</p>
+        </div>
+
         <div class="chat-window">
             <!-- Chat messages will go here -->
             <div id="messagesList">
@@ -36,3 +74,9 @@
     </div>
 </div>
 
+@section Scripts {
+
+    <script src="~/js/signalr.min.js"></script>
+
+    <script src="~/js/chat.js"></script>
+}
