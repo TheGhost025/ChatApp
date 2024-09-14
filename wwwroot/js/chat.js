@@ -1,3 +1,21 @@
+function updateUserProfile() {
+    // Fetch user profile data from the backend
+    fetch('/Account/GetUserProfile')
+        .then(response => response.json())
+        .then(data => {
+            // Update the user name
+            document.getElementById('userName').textContent = data.name;
+
+            // Update the user image, fallback to default if no image is found
+            const userImage = document.getElementById('userImage');
+            userImage.src = "/images/" + data.profileImageUrl || '/images/default-user.jpg';
+        })
+        .catch(error => console.error('Error fetching user profile:', error));
+}
+
+// Call the function after the user logs in or the page loads
+updateUserProfile();
+
 // Tabs switching logic
 function showTab(tabName) {
     document.getElementById("recentTab").style.display = tabName === 'recent' ? 'block' : 'none';

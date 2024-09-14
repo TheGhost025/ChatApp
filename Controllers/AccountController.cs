@@ -1,18 +1,22 @@
 ﻿using ChatApp.Models;
+using ChatAppp.Entity;
 using ChatAppp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ChatApp.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly DBContext _dBContext;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IWebHostEnvironment webHostEnvironment)
+        public AccountController(DBContext dBContext ,UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IWebHostEnvironment webHostEnvironment)
         {
+            _dBContext = dBContext;
             _userManager = userManager;
             _signInManager = signInManager;
             _webHostEnvironment = webHostEnvironment;
@@ -105,6 +109,19 @@ namespace ChatApp.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dBContext.Users.FindAsync(userId);
+
+            return Json(new
+            {
+                name = $"{user.FirstName} {user.LastName}",
+                profileImageUrl = user.PhotoName // Assuming `Photo` contains the image path or URL
+            });
         }
 
     }

@@ -1,24 +1,35 @@
 ﻿@model ChatApp.Models.LogInViewModel
 
-<!-- Display validation summary for the form -->
-<div asp-validation-summary="All" class="text-danger"></div>
+@section Style{
+    <link rel="stylesheet" href="~/css/login.css" />
+}
 
-<form asp-action="LogIn" method="post">
+<div class="container">
+    <!-- Display validation summary for the form -->
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <form asp-action="LogIn" method="post">
+        <div class="form-group">
+            <label asp-for="Email" class="control-label"></label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Password" class="control-label"></label>
+            <input asp-for="Password" type="password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input asp-for="RememberMe" type="checkbox" /> Remember me
+            <span asp-validation-for="RememberMe" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Log in</button>
+        </div>
+    </form>
+
+    <!-- Add button for redirecting to registration form -->
     <div class="form-group">
-        <label asp-for="Email" class="control-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
+        <a asp-action="Register" class="btn btn-secondary">Register</a>
     </div>
-    <div class="form-group">
-        <label asp-for="Password" class="control-label"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <input asp-for="RememberMe" type="checkbox" /> Remember me
-        <span asp-validation-for="RememberMe" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Log in</button>
-    </div>
-</form>
+</div>

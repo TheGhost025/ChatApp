@@ -1,0 +1,8 @@
+﻿.container {
+    width: 450px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 10px;
+    background-color: #f7f7f7;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
