@@ -4,6 +4,10 @@ using ChatAppp.Enum;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using ChatApp.Services;
+using Microsoft.AspNetCore.Identity;
+using ChatAppp.Entity;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ChatApp.Controllers
 {
@@ -11,11 +15,15 @@ namespace ChatApp.Controllers
     {
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly GroupSrvice _groupService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly DBContext _context;
 
-        public ChatController(IHubContext<ChatHub> hubContext, GroupSrvice groupService)
+        public ChatController(IHubContext<ChatHub> hubContext, GroupSrvice groupService , UserManager<ApplicationUser> userManager, DBContext dBContext)
         {
             _hubContext = hubContext;
             _groupService = groupService;
+            _userManager = userManager;
+            _context = dBContext;
         }
 
         public IActionResult Index()
@@ -64,5 +72,29 @@ namespace ChatApp.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+        // Search for new users not in the current user's friend list
+        [HttpPost]
+        public async Task<IActionResult> SearchNewUsers([FromBody] string searchTerm)
+        {
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                return BadRequest("Search term is required.");
+            }
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;
+
+            // Get users that are not friends of the current user
+            var foundUsers = await _context.Users
+                .Where(u => u.Id != currentUserId &&
+                            (u.FirstName.Contains(searchTerm.ToLower()) || u.LastName.Contains(searchTerm.ToLower())) &&
+                            !_context.FriendRequests.Any(fr => (fr.SenderId == currentUserId && fr.ReceiverId == u.Id) ||
+                                                               (fr.ReceiverId == currentUserId && fr.SenderId == u.Id)))
+                .ToListAsync();
+
+            return Ok(foundUsers);
+        }
+
+
     }
 }

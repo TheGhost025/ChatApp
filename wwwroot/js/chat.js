@@ -16,6 +16,45 @@ function updateUserProfile() {
 // Call the function after the user logs in or the page loads
 updateUserProfile();
 
+// Search New Users
+document.getElementById("searchNewUserButton").addEventListener("click", async function () {
+    const searchTerm = document.getElementById("searchNewUserInput").value;
+
+    try {
+        const response = await axios.post('/Chat/SearchNewUsers',
+            searchTerm ,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        const users = response.data;
+
+        console.log(users);
+
+        //// Render the search results
+        //const searchResults = document.getElementById('searchResults');
+        //searchResults.innerHTML = "";  // Clear previous results
+
+        //if (users.length === 0) {
+        //    searchResults.innerHTML = "<p>No users found.</p>";
+        //} else {
+        //    users.forEach(user => {
+        //        const userDiv = document.createElement('div');
+        //        userDiv.classList.add('user-result');
+        //        userDiv.innerHTML = `<strong>${user.firstName} ${user.lastName}</strong>`;
+        //        searchResults.appendChild(userDiv);
+        //    });
+        //}
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred while searching for users.");
+    }
+});
+
 // Tabs switching logic
 function showTab(tabName) {
     document.getElementById("recentTab").style.display = tabName === 'recent' ? 'block' : 'none';
@@ -68,32 +107,6 @@ connection.start().then(function () {
             })
             .catch(function (err) {
                 console.error("Error searching within friends/groups:", err);
-            });
-    });
-
-    // Search for New Users and send a friend request
-    document.getElementById("searchNewUserButton").addEventListener("click", function () {
-        const searchQuery = document.getElementById("searchNewUserInput").value;
-
-        // Call the backend to search for users who are not friends
-        connection.invoke("SearchForNewUsers", searchQuery)
-            .then(function (users) {
-                console.log("Found users:", users);
-
-                // For example, display the first result and send a friend request
-                if (users.length > 0) {
-                    const userId = users[0].id;
-                    connection.invoke("SendFriendRequest", userId)
-                        .then(function () {
-                            alert("Friend request sent!");
-                        })
-                        .catch(function (err) {
-                            return console.error(err.toString());
-                        });
-                }
-            })
-            .catch(function (err) {
-                console.error("Error searching for new users:", err);
             });
     });
 }).catch(function (err) {
