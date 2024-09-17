@@ -17,7 +17,7 @@ function updateUserProfile() {
 updateUserProfile();
 
 // Search New Users
-document.getElementById("searchNewUserButton").addEventListener("click", async function () {
+document.getElementById("searchNewUserInput").addEventListener("input", async function () {
     const searchTerm = document.getElementById("searchNewUserInput").value;
 
     try {
@@ -34,26 +34,69 @@ document.getElementById("searchNewUserButton").addEventListener("click", async f
 
         console.log(users);
 
-        //// Render the search results
-        //const searchResults = document.getElementById('searchResults');
-        //searchResults.innerHTML = "";  // Clear previous results
+        // Render the search results
+        const searchResults = document.getElementById('searchResults');
+        searchResults.innerHTML = "";  // Clear previous results
+        searchResults.style.display = 'flex';
 
-        //if (users.length === 0) {
-        //    searchResults.innerHTML = "<p>No users found.</p>";
-        //} else {
-        //    users.forEach(user => {
-        //        const userDiv = document.createElement('div');
-        //        userDiv.classList.add('user-result');
-        //        userDiv.innerHTML = `<strong>${user.firstName} ${user.lastName}</strong>`;
-        //        searchResults.appendChild(userDiv);
-        //    });
-        //}
+        if (users.length === 0) {
+            searchResults.innerHTML = "<p>No users found.</p>";
+        } else {
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.classList.add('user-result');
+
+                userDiv.innerHTML = `
+                    <img src="/images/${user.photoName || 'default-user.jpg'}" alt="${user.firstName}">
+                    <strong>${user.firstName} ${user.lastName}</strong>
+                    <button class="send-request-btn" data-user-id="${user.id}">Send Request</button>
+                `;
+
+                // Append each user to the search results
+                searchResults.appendChild(userDiv);
+            });
+        }
+
+        // Add event listeners to the 'Send Request' buttons
+        document.querySelectorAll('.send-request-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const userId = this.getAttribute('data-user-id');
+                sendFriendRequest(userId);
+            });
+        });
 
     } catch (error) {
         console.error("Error:", error);
-        alert("An error occurred while searching for users.");
+        const searchResults = document.getElementById('searchResults');
+        searchResults.innerHTML = "";  // Clear previous results
+        searchResults.style.display = 'none';
     }
 });
+
+async function sendFriendRequest(userId) {
+    try
+    {
+        const response = await axios.post("/Chat/SendFriendRequest",
+             userId ,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        if (response.data.success) {
+            alert('Friend request sent successfully!');
+        } else {
+            alert('Failed to send friend request.');
+        }
+    }
+    catch(error)
+    {
+        console.error("Error sending friend request:", error);
+        alert("An error occurred while sending the friend request.");
+    }
+}
 
 // Tabs switching logic
 function showTab(tabName) {

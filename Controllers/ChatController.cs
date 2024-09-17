@@ -82,7 +82,7 @@ namespace ChatApp.Controllers
             {
                 return BadRequest("Search term is required.");
             }
-            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; ;
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // Get users that are not friends of the current user
             var foundUsers = await _context.Users
@@ -93,6 +93,43 @@ namespace ChatApp.Controllers
                 .ToListAsync();
 
             return Ok(foundUsers);
+        }
+
+        public async Task<IActionResult> SendFriendRequest([FromBody] string receiverId)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (await _context.Users.AnyAsync(u => u.Id == receiverId) && currentUserId != receiverId)
+            {
+                // Ensure the friend request doesn't already exist
+                var existingRequest = await _context.FriendRequests.AnyAsync(fr =>
+                    (fr.SenderId == currentUserId && fr.ReceiverId == receiverId) ||
+                    (fr.SenderId == receiverId && fr.ReceiverId == currentUserId));
+
+                if (!existingRequest) 
+                {
+                    var friendRequest = new FriendRequest
+                    {
+                        SenderId = currentUserId,
+                        ReceiverId = receiverId,
+                        IsAccepted = false,
+                        RequestDate = DateTime.Now
+                    };
+
+                    _context.FriendRequests.Add(friendRequest);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("Friend request sent.");
+                }
+                else
+                {
+                    return BadRequest("Friend request already exists.");
+                }
+            }
+            else
+            {
+                return BadRequest("Unable to send the friend request.");
+            }
         }
 
 

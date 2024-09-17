@@ -205,3 +205,63 @@
         .chat-input button:hover {
             background-color: #0056b3;
         }
+
+
+#searchResults {
+    display: none;
+}
+/* Styles for the search results container */
+.search-results {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    gap: 20px; /* Space between results */
+    position: absolute;
+    padding: 20px; /* Padding inside the container */
+    background-color: rgba(255, 255, 255, 0.9); /* Background color with opacity */
+    border-radius: 10px; /* Rounded corners for the container */
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    width: 75%; /* Set the width as needed */
+    height: auto; /* Adjust height to fit the content */
+    max-height: 600px; /* Maximum height for the container */
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+}
+
+/* Styles for individual user results */
+.user-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 200px; /* Adjust width as needed */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff; /* Background color for individual result cards */
+    text-align: center;
+}
+
+    /* Styles for user profile image */
+    .user-result img {
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        margin-bottom: 10px;
+    }
+
+    /* Styles for the send request button */
+    .user-result button {
+        margin-top: 10px;
+        padding: 5px 10px;
+        background-color: #28a745;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        /* Hover effect for the send request button */
+        .user-result button:hover {
+            background-color: #218838;
+        }
