@@ -105,6 +105,20 @@ function showTab(tabName) {
     document.getElementById("friendsTab").style.display = tabName === 'friends' ? 'block' : 'none';
 }
 
+document.getElementById("toggle-friend-requests").addEventListener("click", function () {
+    console.log("sfs");
+    const friendRequestsContainer = document.getElementById('friend-requests-container');
+
+        if (friendRequestsContainer.style.display === 'none') {
+            friendRequestsContainer.style.display = 'block';
+            toggleButton.textContent = 'Hide Friend Requests';
+        } else {
+            friendRequestsContainer.style.display = 'none';
+            toggleButton.textContent = 'Show Friend Requests';
+        }
+});
+
+
 // SignalR connection setup
 const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 

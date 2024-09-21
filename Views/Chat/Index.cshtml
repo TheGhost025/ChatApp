@@ -15,6 +15,8 @@
         <div class="profile">
             <img id="userImage" src="~/images/b3c5c832-0fc8-4618-9c4f-54bd05dffebd_Screenshot 2024-05-05 044508.png" alt="Profile" />
             <h3 id="userName">Mazen</h3>
+            <!-- Toggle Friend Requests Button -->
+            <button id="toggle-friend-requests" class="toggle-button">Show Friend Requests</button>
         </div>
         <!-- Search Bar for Friends and Groups -->
         <div class="search-bar">
@@ -46,6 +48,14 @@
             <!-- Friends List -->
             <div>Friend 1</div>
             <div>Friend 2</div>
+        </div>
+    </div>
+
+    <!-- Friend Requests Section -->
+    <div class="friend-requests" id="friend-requests-container" style="display: none;">
+        <h3>Friend Requests</h3>
+        <div id="friendRequestsList">
+            <!-- Friend request items will be dynamically added here -->
         </div>
     </div>
 
