@@ -72,7 +72,7 @@ document.getElementById("searchNewUserInput").addEventListener("input", async fu
     const searchTerm = document.getElementById("searchNewUserInput").value;
 
     try {
-        const response = await axios.post('/Chat/SearchNewUsers',
+        const response = await axios.post('/Search/SearchNewUsers',
             searchTerm ,
             {
                 headers: {
@@ -136,8 +136,9 @@ async function sendFriendRequest(userId) {
             }
         );
 
-        if (response.data.ok) {
+        if (response.status == 200) {
             alert('Friend request sent successfully!');
+            removenewFriendFromUI(userId);
         } else {
             alert('Failed to send friend request.');
         }
@@ -157,7 +158,6 @@ function showTab(tabName) {
 }
 
 document.getElementById("toggle-friend-requests").addEventListener("click", function () {
-    console.log("sfs");
     const friendRequestsContainer = document.getElementById('friend-requests-container');
 
         if (friendRequestsContainer.style.display === 'none') {
@@ -257,41 +257,43 @@ connection.on("ReceiveFriendRequest", function (requestData) {
 
     // Append the friend request to the friend requests container
     document.getElementById("friendRequestsList").appendChild(friendRequestElement);
+
+    alert(`New friend request from ${senderFirstName} ${senderLastName}!`);
 });
 
 // Function to handle accepting the friend request
 function acceptFriendRequest(requestId) {
-    axios.post('/Chat/AcceptFriendRequest', requestId,
+    axios.post('/FriendRequest/AcceptFriendRequest', requestId,
         {
             headers: {
                 'Content-Type': 'application/json',
             }
         })
         .then(response => {
-            console.log("Friend request accepted:", response.data);
+            alert("Friend request accepted:", response.data);
             // Optionally, remove the request from the UI or refresh the list
             removeFriendRequestFromUI(requestId);
         })
         .catch(error => {
-            console.error("Error accepting friend request:", error);
+            alert("Error accepting friend request:", error);
         });
 }
 
 // Function to handle rejecting the friend request
 function rejectFriendRequest(requestId) {
-    axios.post('/Chat/DeclineFriendRequest', requestId,
+    axios.post('/FriendRequest/DeclineFriendRequest', requestId,
         {
             headers: {
                 'Content-Type': 'application/json',
             }
         })
         .then(response => {
-            console.log("Friend request declined:", response.data);
+            alert("Friend request declined:", response.data);
             // Optionally, remove the request from the UI or refresh the list
             removeFriendRequestFromUI(requestId);
         })
         .catch(error => {
-            console.error("Error declining friend request:", error);
+            alert("Error declining friend request:", error);
         });
 }
 
@@ -300,5 +302,16 @@ function removeFriendRequestFromUI(senderId) {
     const requestElement = document.querySelector(`button[onclick="acceptFriendRequest('${senderId}')"]`).closest('.friend-request-item');
     if (requestElement) {
         requestElement.remove();
+    }
+}
+
+function removenewFriendFromUI(userId) {
+    // Remove the user from the search results
+    const button = document.querySelector(`.send-request-btn[data-user-id='${userId}']`);
+    if (button) {
+        const userDiv = button.closest('.user-result');
+        if (userDiv) {
+            userDiv.remove(); // Remove the user element from the list
+        }
     }
 }

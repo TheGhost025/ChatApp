@@ -354,3 +354,30 @@
         background-color: #0056b3;
     }
 
+.message-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+    .message-notification img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .message-notification strong {
+        margin-right: 5px;
+    }
+
+    .message-notification p {
+        margin: 0;
+    }
