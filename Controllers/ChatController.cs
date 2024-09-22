@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using ChatAppp.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using NuGet.Protocol.Plugins;
 
 namespace ChatApp.Controllers
 {
@@ -32,9 +33,9 @@ namespace ChatApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendMessage(string receiverId, string messageContent, MessageType messageType, string fileUrl = null)
+        public async Task<IActionResult> SendMessage(string receiverId, string messageContent, ChatAppp.Enum.MessageType messageType, string fileUrl = null)
         {
-            await _hubContext.Clients.User(receiverId).SendAsync("ReceiveMessage", new Message
+            await _hubContext.Clients.User(receiverId).SendAsync("ReceiveMessage", new ChatAppp.Models.Message
             {
                 SenderId = User.Identity.Name,
                 ReceiverId = receiverId,
@@ -48,7 +49,7 @@ namespace ChatApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendMessageToGroup(string groupName, string messageContent, MessageType messageType, string fileUrl = null)
+        public async Task<IActionResult> SendMessageToGroup(string groupName, string messageContent, ChatAppp.Enum.MessageType messageType, string fileUrl = null)
         {
             // Fetch the Group ID using the GroupService
             int groupId = await _groupService.GetGroupIdByName(groupName);
@@ -60,7 +61,7 @@ namespace ChatApp.Controllers
             }
 
             // Send the message to the group
-            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", new Message
+            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", new ChatAppp.Models.Message
             {
                 SenderId = User.Identity.Name,
                 GroupId = groupId,
@@ -106,7 +107,7 @@ namespace ChatApp.Controllers
                     (fr.SenderId == currentUserId && fr.ReceiverId == receiverId) ||
                     (fr.SenderId == receiverId && fr.ReceiverId == currentUserId));
 
-                if (!existingRequest) 
+                if (!existingRequest)
                 {
                     var friendRequest = new FriendRequest
                     {
@@ -118,6 +119,19 @@ namespace ChatApp.Controllers
 
                     _context.FriendRequests.Add(friendRequest);
                     await _context.SaveChangesAsync();
+
+                    var sender = _context.Users.FirstOrDefault(u => u.Id == currentUserId);
+
+                    // Notify the receiver in real-time using SignalR
+                    await _hubContext.Clients.User(receiverId).SendAsync("ReceiveFriendRequest", new
+                    {
+                        FriendRequestId = friendRequest.Id,
+                        SenderId = currentUserId,
+                        SenderFirstName = sender.FirstName,  // First name
+                        SenderLastName = sender.LastName,    // Last name
+                        SenderImage = sender.PhotoName,       // Profile image URL
+                        RequestDate = DateTime.Now,
+                    });
 
                     return Ok("Friend request sent.");
                 }
@@ -132,6 +146,64 @@ namespace ChatApp.Controllers
             }
         }
 
+        [HttpGet("GetPendingFriendRequests")]
+        public async Task<IActionResult> GetPendingFriendRequests()
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            // Retrieve pending friend requests where the current user is the receiver
+            var pendingRequests = await _context.FriendRequests
+                .Where(fr => fr.ReceiverId == currentUserId && !fr.IsAccepted)
+                .Select(fr => new
+                {
+                    fr.Id,
+                    fr.SenderId,
+                    SenderFirstName = fr.Sender.FirstName,   // Fetch first name from the sender (ApplicationUser)
+                    SenderLastName = fr.Sender.LastName,     // Fetch last name from the sender (ApplicationUser)
+                    SenderPhoto = fr.Sender.PhotoName,       // Fetch profile photo from the sender (ApplicationUser)
+                    fr.RequestDate
+                })
+                .ToListAsync();
+
+            return Ok(pendingRequests);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AcceptFriendRequest([FromBody] int requestId)
+        {
+            var friendRequest = await _context.FriendRequests.FindAsync(requestId);
+
+            if (friendRequest == null)
+            {
+                return NotFound("Friend request not found.");
+            }
+
+            friendRequest.IsAccepted = true;
+            await _context.SaveChangesAsync();
+
+            return Ok("Friend request accepted.");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeclineFriendRequest([FromBody] int requestId)
+        {
+            var friendRequest = await _context.FriendRequests.FindAsync(requestId);
+
+            if (friendRequest == null)
+            {
+                return NotFound("Friend request not found.");
+            }
+
+            _context.FriendRequests.Remove(friendRequest);
+            await _context.SaveChangesAsync();
+
+            return Ok("Friend request declined.");
+        }
     }
 }

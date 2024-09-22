@@ -65,6 +65,12 @@ namespace ChatApp.Hubs
             await Clients.Group(groupName).SendAsync("ReceiveMessage", message);
         }
 
+        // Method to notify the receiver about the friend request
+        public async Task SendFriendRequestNotification(string receiverId, string senderName)
+        {
+            await Clients.User(receiverId).SendAsync("ReceiveFriendRequest", senderName);
+        }
+
         public Task JoinGroup(string groupName)
         {
             return Groups.AddToGroupAsync(Context.ConnectionId,groupName);

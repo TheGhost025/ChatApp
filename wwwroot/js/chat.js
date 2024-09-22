@@ -16,6 +16,57 @@ function updateUserProfile() {
 // Call the function after the user logs in or the page loads
 updateUserProfile();
 
+// Function to load old (pending) friend requests on page load
+async function loadPendingFriendRequests() {
+    await axios.get('/GetPendingFriendRequests')
+        .then(response => {
+            const pendingRequests = response.data;
+            console.log(pendingRequests);
+            console.log();
+            pendingRequests.forEach(request => {
+                displayFriendRequest(request); // Reuse your displayFriendRequest function
+            });
+        })
+        .catch(error => {
+            console.error("Error loading pending friend requests:", error);
+        });
+}
+
+// Function to display a friend request in the UI (can be reused)
+function displayFriendRequest(requestData) {
+    const { id, senderId, senderFirstName, senderLastName, senderPhoto, requestDate } = requestData;
+
+    // Create a new friend request item in the UI
+    const friendRequestElement = document.createElement("div");
+    friendRequestElement.classList.add("friend-request-item");
+
+    // Set default image if PhotoName is not provided
+    const senderImageSrc = senderPhoto ? `/images/${senderPhoto}` : '/images/default-user.jpg';
+
+    friendRequestElement.innerHTML = `
+        <div class="friend-request-profile">
+            <img src="${senderImageSrc}" alt="${senderFirstName} ${senderLastName}" />
+        </div>
+        <div class="friend-request-info">
+            <p>${senderFirstName} ${senderLastName}</p>
+            <small>Request sent on ${new Date(requestDate).toLocaleString()}</small>
+        </div>
+        <div class="friend-request-actions">
+            <button onclick="acceptFriendRequest('${id}')">Accept</button>
+            <button onclick="rejectFriendRequest('${id}')">Reject</button>
+        </div>
+    `;
+
+    // Append the friend request to the friend requests container
+    document.getElementById("friendRequestsList").appendChild(friendRequestElement);
+}
+
+// Call this function when the page loads to fetch and display pending requests
+document.addEventListener("DOMContentLoaded", function () {
+    loadPendingFriendRequests();
+});
+
+
 // Search New Users
 document.getElementById("searchNewUserInput").addEventListener("input", async function () {
     const searchTerm = document.getElementById("searchNewUserInput").value;
@@ -85,7 +136,7 @@ async function sendFriendRequest(userId) {
             }
         );
 
-        if (response.data.success) {
+        if (response.data.ok) {
             alert('Friend request sent successfully!');
         } else {
             alert('Failed to send friend request.');
@@ -111,10 +162,10 @@ document.getElementById("toggle-friend-requests").addEventListener("click", func
 
         if (friendRequestsContainer.style.display === 'none') {
             friendRequestsContainer.style.display = 'block';
-            toggleButton.textContent = 'Hide Friend Requests';
+            document.getElementById("toggle-friend-requests").textContent = 'Hide Friend Requests';
         } else {
             friendRequestsContainer.style.display = 'none';
-            toggleButton.textContent = 'Show Friend Requests';
+            document.getElementById("toggle-friend-requests").textContent = 'Show Friend Requests';
         }
 });
 
@@ -169,3 +220,85 @@ connection.start().then(function () {
 }).catch(function (err) {
     console.error("Error establishing SignalR connection: " + err);
 });
+
+// Handle receiving friend request
+connection.on("ReceiveFriendRequest", function (requestData) {
+    console.log("Friend request received:", requestData); // Log request data for debugging
+
+    // Destructure the request data (ensure these fields exist in requestData)
+    const { friendRequestId, senderFirstName, senderLastName, senderImage, requestDate, senderId } = requestData;
+
+    // Validate that the required fields are not undefined or null
+    if (!senderFirstName || !senderLastName || !senderId) {
+        console.error("Invalid friend request data:", requestData);
+        return; // Stop if data is invalid
+    }
+
+    // Create a new friend request item in the UI
+    const friendRequestElement = document.createElement("div");
+    friendRequestElement.classList.add("friend-request-item");
+
+    // Set default image if SenderImage is not provided
+    const senderImageSrc = '/images/' + senderImage || '/images/default-user.jpg';
+
+    friendRequestElement.innerHTML = `
+        <div class="friend-request-profile">
+            <img src="${senderImageSrc}" alt="${senderFirstName} ${senderLastName}" />
+        </div>
+        <div class="friend-request-info">
+            <p>${senderFirstName} ${senderLastName}</p>
+            <small>Request sent on ${new Date(requestDate).toLocaleString()}</small>
+        </div>
+        <div class="friend-request-actions">
+            <button onclick="acceptFriendRequest('${friendRequestId}')">Accept</button>
+            <button onclick="rejectFriendRequest('${friendRequestId}')">Reject</button>
+        </div>
+    `;
+
+    // Append the friend request to the friend requests container
+    document.getElementById("friendRequestsList").appendChild(friendRequestElement);
+});
+
+// Function to handle accepting the friend request
+function acceptFriendRequest(requestId) {
+    axios.post('/Chat/AcceptFriendRequest', requestId,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            console.log("Friend request accepted:", response.data);
+            // Optionally, remove the request from the UI or refresh the list
+            removeFriendRequestFromUI(requestId);
+        })
+        .catch(error => {
+            console.error("Error accepting friend request:", error);
+        });
+}
+
+// Function to handle rejecting the friend request
+function rejectFriendRequest(requestId) {
+    axios.post('/Chat/DeclineFriendRequest', requestId,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            console.log("Friend request declined:", response.data);
+            // Optionally, remove the request from the UI or refresh the list
+            removeFriendRequestFromUI(requestId);
+        })
+        .catch(error => {
+            console.error("Error declining friend request:", error);
+        });
+}
+
+function removeFriendRequestFromUI(senderId) {
+    // Remove the friend request element from the UI
+    const requestElement = document.querySelector(`button[onclick="acceptFriendRequest('${senderId}')"]`).closest('.friend-request-item');
+    if (requestElement) {
+        requestElement.remove();
+    }
+}
