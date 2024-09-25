@@ -1,4 +1,4 @@
-﻿@section Style{
+﻿@section Style {
     <link rel="stylesheet" href="~/css/chat.css" />
 }
 
@@ -16,7 +16,13 @@
             <img id="userImage" src="~/images/b3c5c832-0fc8-4618-9c4f-54bd05dffebd_Screenshot 2024-05-05 044508.png" alt="Profile" />
             <h3 id="userName">Mazen</h3>
             <!-- Toggle Friend Requests Button -->
-            <button id="toggle-friend-requests" class="toggle-button">Show Friend Requests</button>
+
+            <button id="toggle-friend-requests" class="toggle-button">
+                <i class="fa-solid fa-user-group" id="toggle-icon"></i>
+                <span id="numberofPendingFriends">0</span>
+            </button>
+
+            <button id="toggle-friend-pending-requests" class="toggle-button">Show Pending Friend Requests</button>
         </div>
         <!-- Search Bar for Friends and Groups -->
         <div class="search-bar">
@@ -38,13 +44,13 @@
             <div>Chat 2</div>
         </div>
 
-        <div class="chats-list" id="groupsTab" style="display:none;">
+        <div class="groups-list" id="groupsTab" style="display:none;">
             <!-- Group Chats -->
             <div>Group 1</div>
             <div>Group 2</div>
         </div>
 
-        <div class="chats-list" id="friendsTab" style="display:none;">
+        <div class="friends-list" id="friendsTab" style="display:none;">
             <!-- Friends List -->
             <div>Friend 1</div>
             <div>Friend 2</div>
@@ -55,6 +61,14 @@
     <div class="friend-requests" id="friend-requests-container" style="display: none;">
         <h3>Friend Requests</h3>
         <div id="friendRequestsList">
+            <!-- Friend request items will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Friend Requests Section -->
+    <div class="friend-requests" id="friend-pending-requests-container" style="display: none;">
+        <h3>Pending Friend Requests</h3>
+        <div id="friendRequestsListpending">
             <!-- Friend request items will be dynamically added here -->
         </div>
     </div>

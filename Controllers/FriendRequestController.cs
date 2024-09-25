@@ -96,6 +96,33 @@ namespace ChatApp.Controllers
             return Ok(pendingRequests);
         }
 
+        [HttpGet("GetPendingFriendRequestsSender")]
+        public async Task<IActionResult> GetPendingFriendRequestsSender()
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            // Retrieve pending friend requests where the current user is the receiver
+            var pendingRequests = await _context.FriendRequests
+                .Where(fr => fr.SenderId == currentUserId && !fr.IsAccepted)
+                .Select(fr => new
+                {
+                    fr.Id,
+                    fr.SenderId,
+                    SenderFirstName = fr.Sender.FirstName,   // Fetch first name from the sender (ApplicationUser)
+                    SenderLastName = fr.Sender.LastName,     // Fetch last name from the sender (ApplicationUser)
+                    SenderPhoto = fr.Sender.PhotoName,       // Fetch profile photo from the sender (ApplicationUser)
+                    fr.RequestDate
+                })
+                .ToListAsync();
+
+            return Ok(pendingRequests);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> AcceptFriendRequest([FromBody] int requestId)
@@ -127,6 +154,33 @@ namespace ChatApp.Controllers
             await _context.SaveChangesAsync();
 
             return Ok("Friend request declined.");
+        }
+
+        [HttpGet("GetSentFriendRequests")]
+        public async Task<IActionResult> GetSentFriendRequests()
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            // Retrieve sent friend requests where the current user is the sender and the requests are not accepted yet
+            var sentRequests = await _context.FriendRequests
+                .Where(fr => fr.SenderId == currentUserId && !fr.IsAccepted)
+                .Select(fr => new
+                {
+                    fr.Id,
+                    fr.ReceiverId,
+                    ReceiverFirstName = fr.Receiver.FirstName,   // Fetch first name from the receiver (ApplicationUser)
+                    ReceiverLastName = fr.Receiver.LastName,     // Fetch last name from the receiver (ApplicationUser)
+                    ReceiverPhoto = fr.Receiver.PhotoName,       // Fetch profile photo from the receiver (ApplicationUser)
+                    fr.RequestDate
+                })
+                .ToListAsync();
+
+            return Ok(sentRequests);
         }
     }
 }
