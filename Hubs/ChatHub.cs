@@ -80,5 +80,23 @@ namespace ChatApp.Hubs
         {
             return Groups.RemoveFromGroupAsync(Context.ConnectionId,groupName);
         }
+
+        public override async Task OnConnectedAsync()
+        {
+            var userId = Context.UserIdentifier;
+
+            // Notify other users that this user is online
+            await Clients.Others.SendAsync("UserOnline", userId);
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            var userId = Context.UserIdentifier;
+
+            // Notify other users that this user is offline
+            await Clients.Others.SendAsync("UserOffline", userId);
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }

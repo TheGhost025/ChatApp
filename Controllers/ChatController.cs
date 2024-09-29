@@ -16,15 +16,17 @@ namespace ChatApp.Controllers
     {
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly GroupSrvice _groupService;
+        private readonly UserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly DBContext _context;
 
-        public ChatController(IHubContext<ChatHub> hubContext, GroupSrvice groupService , UserManager<ApplicationUser> userManager, DBContext dBContext)
+        public ChatController(IHubContext<ChatHub> hubContext, GroupSrvice groupService , UserManager<ApplicationUser> userManager,UserService userService, DBContext dBContext)
         {
             _hubContext = hubContext;
             _groupService = groupService;
             _userManager = userManager;
             _context = dBContext;
+            _userService = userService;
         }
 
         public IActionResult Index()
@@ -132,6 +134,20 @@ namespace ChatApp.Controllers
                 }).ToList();
 
             return Ok(groups);
+        }
+
+        [HttpGet("GetPrivateChat")]
+        public async Task<IActionResult> GetUserChat(string reciverId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (reciverId == null)
+            {
+                return NotFound();
+            }
+
+            // Return the user's chat history, you might need to modify this depending on your data structure
+            var chatHistory = await _userService.GetPrivateChatIdByName(userId,reciverId);
+            return Ok(chatHistory);
         }
 
     }

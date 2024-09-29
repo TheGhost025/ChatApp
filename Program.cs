@@ -21,6 +21,7 @@ namespace ChatApp
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<GroupSrvice>();
+            builder.Services.AddScoped<UserService>();
 
             // Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

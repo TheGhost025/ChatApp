@@ -230,6 +230,9 @@ async function loadFriends() {
         friends.forEach(friend => {
             const friendElement = document.createElement("div");
             friendElement.classList.add("friend-item");
+            friendElement.dataset.chatId = friend.friendId;
+            friendElement.dataset.chatName = friend.friendName;
+            friendElement.dataset.chatImage = friend.photoUrl;
 
             friendElement.innerHTML = `
                 <div class="friend-profile">
@@ -238,6 +241,16 @@ async function loadFriends() {
                 </div>
             `;
             friendsList.appendChild(friendElement);
+        });
+
+        // Add click event listeners for starting chat
+        friendsList.addEventListener('click', (event) => {
+            if (event.target.closest('.friend-item')) {
+                const chatId = event.target.closest('.friend-item').dataset.chatId;
+                const name = event.target.closest('.friend-item').dataset.chatName;
+                const image = event.target.closest('.friend-item').dataset.chatImage;
+                startChat(chatId,name,image);
+            }
         });
         }
     catch (errpr) {
@@ -255,6 +268,9 @@ async function loadRecentChats() {
         recentChats.forEach(chat => {
             const chatElement = document.createElement("div");
             chatElement.classList.add("chat-item");
+            chatElement.dataset.chatId = chat.conversationId;
+            friendElement.dataset.chatName = chat.chatPartner;
+            friendElement.dataset.chatImage = chat.photoUrl;
 
             chatElement.innerHTML = `
             <div class="chat-profile">
@@ -265,6 +281,16 @@ async function loadRecentChats() {
         `;
 
             recentChatsList.appendChild(chatElement);
+        });
+
+        // Add click event listeners for starting chat
+        recentChatsList.addEventListener('click', (event) => {
+            if (event.target.closest('.chat-item')) {
+                const chatId = event.target.closest('.chat-item').dataset.chatId;
+                const name = event.target.closest('.chat-item').dataset.chatName;
+                const image = event.target.closest('.chat-item').dataset.chatImage;
+                startChat(chatId,name,image);
+            }
         });
     } catch (error) {
         console.error("Error loading recent chats:", error);
@@ -283,6 +309,7 @@ async function loadRecentChats() {
             groups.forEach(group => {
                 const groupElement = document.createElement("div");
                 groupElement.classList.add("group-item");
+                groupElement.dataset.chatId = group.id;
 
                 groupElement.innerHTML = `
             <div class="group-profile">
@@ -293,11 +320,52 @@ async function loadRecentChats() {
 
                 groupsList.appendChild(groupElement);
             });
+
+            //// Add click event listeners for starting chat
+            //groupsList.addEventListener('click', (event) => {
+            //    if (event.target.closest('.group-item')) {
+            //        const chatId = event.target.closest('.group-item').dataset.chatId;
+            //        startChat(chatId);
+            //    }
+            //});
         } catch (error) {
             console.error("Error loading groups:", error);
         }
     }
 
+// Function to start a chat
+async function startChat(targetId,name,image) {
+    // You can either navigate to a chat page or open a chat interface/modal here
+
+    // Update the user name
+    document.getElementById('reciverName').textContent = name;
+
+    // Update the user image, fallback to default if no image is found
+    const userImage = document.getElementById('reciverImage');
+    userImage.src = "/images/" + image || '/images/default-user.jpg';
+
+    console.log("Starting chat with:", targetId);
+    try {
+        // Make an API call to get the chat history
+        const response = await axios.get(`/GetPrivateChat?reciverId=${targetId}`);
+        const chatHistory = response.data;
+
+        // Update the chat window with chat history
+        const messagesList = document.getElementById("messagesList");
+        messagesList.innerHTML = ""; // Clear previous messages
+
+        chatHistory.forEach(message => {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message", message.receiverId == targetId ? "received" : "sent");
+            messageElement.innerHTML = `<p>${message.content}</p>`; // Assuming message has a 'text' property
+            messagesList.appendChild(messageElement);
+        });
+
+        console.log("Chat started with:", targetId);
+    } catch (error) {
+        console.error("Error starting chat:", error);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     loadFriends(); 
