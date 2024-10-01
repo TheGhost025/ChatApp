@@ -20,23 +20,38 @@ namespace ChatApp.Hubs
 
         public async Task SendMessage(string receiverId, string messageContent, ChatAppp.Enum.MessageType messageType, string fileUrl = null)
         {
-            var senderId = Context.UserIdentifier;
-
-            var message = new ChatAppp.Models.Message
+            try
             {
-                SenderId = senderId,
-                ReceiverId = receiverId,
-                MessageType = messageType,
-                FileUrl = fileUrl,
-                Content = messageContent,
-                Timestamp = DateTime.Now
-            };
+                var senderId = Context.UserIdentifier;
 
-            _dbContext.Messages.Add(message);
-            await _dbContext.SaveChangesAsync();
+                if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId))
+                {
+                    throw new HubException("Invalid sender or receiver ID.");
+                }
 
-            await Clients.Users(receiverId).SendAsync("ReceiveMessage", message);
+                var message = new ChatAppp.Models.Message
+                {
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    MessageType = messageType,
+                    FileUrl = fileUrl,
+                    Content = messageContent,
+                    Timestamp = DateTime.Now
+                };
+
+                _dbContext.Messages.Add(message);
+                await _dbContext.SaveChangesAsync();
+
+                await Clients.Users(receiverId).SendAsync("ReceiveMessage", message);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in SendMessage: {ex.Message}");
+                throw;
+            }
         }
+
 
         public async Task SendMessageToGroup(string groupName, string messageContent, ChatAppp.Enum.MessageType messageType, string fileUrl = null)
         {

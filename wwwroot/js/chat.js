@@ -5,6 +5,7 @@ function updateUserProfile() {
         .then(data => {
             // Update the user name
             document.getElementById('userName').textContent = data.name;
+            document.getElementById('userName').dataset.id = data.id;
 
             // Update the user image, fallback to default if no image is found
             const userImage = document.getElementById('userImage');
@@ -249,6 +250,7 @@ async function loadFriends() {
                 const chatId = event.target.closest('.friend-item').dataset.chatId;
                 const name = event.target.closest('.friend-item').dataset.chatName;
                 const image = event.target.closest('.friend-item').dataset.chatImage;
+                document.getElementById("chat-container").dataset.receiverId = chatId;
                 startChat(chatId,name,image);
             }
         });
@@ -337,6 +339,8 @@ async function loadRecentChats() {
 async function startChat(targetId,name,image) {
     // You can either navigate to a chat page or open a chat interface/modal here
 
+    const senderId = document.getElementById('userName').dataset.id
+
     // Update the user name
     document.getElementById('reciverName').textContent = name;
 
@@ -356,7 +360,7 @@ async function startChat(targetId,name,image) {
 
         chatHistory.forEach(message => {
             const messageElement = document.createElement("div");
-            messageElement.classList.add("message", message.receiverId == targetId ? "received" : "sent");
+            messageElement.classList.add("message", message.senderId == senderId ? "sent" :  "received" );
             messageElement.innerHTML = `<p>${message.content}</p>`; // Assuming message has a 'text' property
             messagesList.appendChild(messageElement);
         });
@@ -403,17 +407,6 @@ document.getElementById("toggle-friend-requests").addEventListener("click", func
 // SignalR connection setup
 const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 
-connection.on("ReceiveMessage", function (message) {
-    const messagesList = document.getElementById("messagesList");
-
-    // Create a new message element
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add(message.senderId === '@User.Identity.Name' ? 'message sent' : 'message received');
-    messageDiv.innerHTML = `<p>${message.content}</p>`;
-
-    messagesList.appendChild(messageDiv);
-});
-
 // Start the connection
 connection.start().then(function () {
     console.log("SignalR connection established");
@@ -421,7 +414,7 @@ connection.start().then(function () {
     // Send message on button click
     document.getElementById("sendButton").addEventListener("click", function () {
         const messageContent = document.getElementById("messageInput").value;
-        const receiverId = "some-receiver-id"; // Assign receiver ID here
+        const receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
 
         // Call the SendMessage method on the backend
         connection.invoke("SendMessage", receiverId, messageContent, 0 /* messageType */, null)
@@ -431,6 +424,26 @@ connection.start().then(function () {
 
         // Clear the input field
         document.getElementById("messageInput").value = "";
+
+        const messagesList = document.getElementById("messagesList");
+
+        // Check if messagesList exists
+        if (!messagesList) {
+            console.error("Element with ID 'messagesList' not found.");
+            return;
+        }
+
+        // Create a new message element
+        const messageDiv = document.createElement("div");
+
+        messageDiv.classList.add('message', 'sent');
+        messageDiv.innerHTML = `<p>${messageContent}</p>`;
+
+        console.log("Appending message to messagesList:", messageDiv);
+        messagesList.appendChild(messageDiv);
+
+        // Auto-scroll to the bottom
+        messagesList.scrollTop = messagesList.scrollHeight;
     });
 
     // Search within Friends/Groups
@@ -450,6 +463,41 @@ connection.start().then(function () {
 }).catch(function (err) {
     console.error("Error establishing SignalR connection: " + err);
 });
+
+connection.on("ReceiveMessage", function (message) {
+    const messagesList = document.getElementById("messagesList");
+
+    // Check if messagesList exists
+    if (!messagesList) {
+        console.error("Element with ID 'messagesList' not found.");
+        return;
+    }
+
+    console.log("Received message:", message);
+
+    // Get the current user's ID for comparison
+    const currentUserId = document.getElementById('userName').dataset.id;
+    console.log("Current User ID:", currentUserId);
+    console.log("Message Sender ID:", message.senderId);
+
+    if (!currentUserId) {
+        console.error("Current user ID not found.");
+        return;
+    }
+
+    // Create a new message element
+    const messageDiv = document.createElement("div");
+    const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
+    messageDiv.classList.add('message', messageClass);
+    messageDiv.innerHTML = `<p>${message.content}</p>`;
+
+    console.log("Appending message to messagesList:", messageDiv);
+    messagesList.appendChild(messageDiv);
+
+    // Auto-scroll to the bottom
+    messagesList.scrollTop = messagesList.scrollHeight;
+});
+
 
 // Handle receiving friend request
 connection.on("ReceiveFriendRequest", function (requestData) {

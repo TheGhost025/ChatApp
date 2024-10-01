@@ -119,6 +119,7 @@ namespace ChatApp.Controllers
 
             return Json(new
             {
+                id = user.Id,
                 name = $"{user.FirstName} {user.LastName}",
                 profileImageUrl = user.PhotoName // Assuming `Photo` contains the image path or URL
             });

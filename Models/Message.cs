@@ -14,7 +14,7 @@ namespace ChatAppp.Models
         public int? GroupId { get; set; } // Nullable in case the message is not for a group
         public MessageType MessageType { get; set; }
         public string Content { get; set; }
-        public string FileUrl { get; set; }
+        public string? FileUrl { get; set; }
         public DateTime Timestamp { get; set; }
 
         // Navigation properties
