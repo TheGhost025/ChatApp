@@ -23,6 +23,7 @@
             </button>
 
             <button id="toggle-friend-pending-requests" class="toggle-button">Show Pending Friend Requests</button>
+            <button id="createGroupButton" class="toggle-button">Create Group</button>
         </div>
         <!-- Search Bar for Friends and Groups -->
         <div class="search-bar">
@@ -70,6 +71,32 @@
         <h3>Pending Friend Requests</h3>
         <div id="friendRequestsListpending">
             <!-- Friend request items will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Group creation modal -->
+    <div id="createGroupModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Create New Group</h2>
+
+            <label for="groupNameInput">Group Name:</label>
+            <input type="text" id="groupNameInput" placeholder="Enter group name" />
+
+            <label for="groupImageInput">Group Image:</label>
+            <input type="file" id="groupImageInput" accept="image/*" />
+
+            <h3>Select Members</h3>
+            <div id="friendsListForGroup">
+                <!-- Friend list items will be dynamically added here -->
+            </div>
+
+            <h3>Select Admin</h3>
+            <select id="adminSelect">
+                <!-- Options will be dynamically added -->
+            </select>
+
+            <button id="createGroupSubmitButton" class="btn-submit">Create Group</button>
+            <button id="cancelGroupButton" class="btn-cancel">Cancel</button>
         </div>
     </div>
 

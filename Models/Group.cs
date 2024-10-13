@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public string PhotoUrl { get; set; }
+        public string CreatorId { get; set; }
 
         // Navigation properties
         public ICollection<GroupMember> GroupMembers { get; set; }

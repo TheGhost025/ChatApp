@@ -403,6 +403,100 @@ document.getElementById("toggle-friend-requests").addEventListener("click", func
     }
 });
 
+// Show the group creation modal when the "Create Group" button is clicked
+document.getElementById('createGroupButton').addEventListener('click', function () {
+    const userId = document.getElementById('userName').dataset.id; // Assume there's a hidden element with user ID
+    fetchFriendsForGroup();  // Fetch friends dynamically for the logged-in user
+    document.getElementById('createGroupModal').style.display = 'block'; // Show modal
+});
+
+// Fetch friends and populate the modal with member list and admin select dropdown
+function fetchFriendsForGroup() {
+    axios.get(`/GetFriends`)
+        .then(response => {
+            const friends = response.data;
+            const friendsListForGroup = document.getElementById('friendsListForGroup');
+            const adminSelect = document.getElementById('adminSelect');
+
+            // Clear the previous list of friends and admin options
+            friendsListForGroup.innerHTML = '';
+            adminSelect.innerHTML = '';
+
+            // Populate the friends list and the admin select dropdown
+            friends.forEach(friend => {
+                // Create a checkbox for each friend
+                const friendCheckbox = `
+                        <div>
+                            <input type="checkbox" id="friend_${friend.friendId}" value="${friend.friendId}">
+                            <label for="friend_${friend.friendId}">${friend.friendName}</label>
+                        </div>`;
+                friendsListForGroup.innerHTML += friendCheckbox;
+
+                // Add friend as an option in the admin dropdown
+                const adminOption = `<option value="${friend.friendId}">${friend.friendName}</option>`;
+                adminSelect.innerHTML += adminOption;
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching friends:', error);
+        });
+}
+
+// Close the modal when the "Cancel" button is clicked
+document.getElementById('cancelGroupButton').addEventListener('click', function () {
+    document.getElementById('createGroupModal').style.display = 'none'; // Hide modal
+});
+
+// Handle group creation
+// Handle the form submission for creating the group
+document.getElementById('createGroupSubmitButton').addEventListener('click', function () {
+    const groupName = document.getElementById('groupNameInput').value;
+
+    // Get selected members
+    const selectedMembers = [];
+    document.querySelectorAll('#friendsListForGroup input[type="checkbox"]:checked').forEach(checkbox => {
+        selectedMembers.push(checkbox.value);
+    });
+
+    // Get selected admin
+    const selectedAdmin = document.getElementById('adminSelect').value;
+
+    // Get the group image file
+    const groupImage = document.getElementById('groupImageInput').files[0];
+
+    // Get user ID (assuming you have a way to identify the logged-in user)
+    const userId = document.getElementById('userName').dataset.id;
+
+    // Create FormData object for sending image and other data
+    const formData = new FormData();
+    formData.append('groupName', groupName);
+    formData.append('members', JSON.stringify(selectedMembers));
+    formData.append('admin', selectedAdmin);
+    formData.append('creatorId', userId);
+    formData.append('groupImage', groupImage); // Attach the group image file
+
+    // Send the API request to create the group
+    axios.post('/api/groups/create', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+        .then(response => {
+            console.log('Group created successfully:', response.data);
+            document.getElementById('createGroupModal').style.display = 'none'; // Hide modal after success
+        })
+        .catch(error => {
+            console.error('Error creating group:', error);
+        });
+});
+
+
+// Handle cancel button
+document.getElementById('cancelGroupButton').addEventListener('click', function () {
+    document.getElementById('createGroupModal').style.display = 'none';
+});
+
+
 
 // SignalR connection setup
 const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
@@ -462,6 +556,16 @@ connection.start().then(function () {
     });
 }).catch(function (err) {
     console.error("Error establishing SignalR connection: " + err);
+});
+
+// When a new group is created
+connection.on("GroupCreated", function (groupName, admin, members) {
+    console.log(`Group '${groupName}' created with admin: ${admin}`);
+    // Add group to the UI (e.g., in the Groups tab)
+    const groupsTab = document.getElementById('groupsTab');
+    const groupItem = document.createElement('div');
+    groupItem.textContent = groupName;
+    groupsTab.appendChild(groupItem);
 });
 
 connection.on("ReceiveMessage", function (message) {

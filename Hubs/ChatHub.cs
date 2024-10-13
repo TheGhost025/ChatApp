@@ -86,6 +86,21 @@ namespace ChatApp.Hubs
             await Clients.User(receiverId).SendAsync("ReceiveFriendRequest", senderName);
         }
 
+        public async Task CreateGroup(string groupName, string admin, List<string> members)
+        {
+            // Create the group in the database (not shown)
+            // Assign the creator as the admin
+
+            // Add users to the group
+            foreach (var member in members)
+            {
+                await Groups.AddToGroupAsync(member, groupName);
+            }
+
+            // Notify group members
+            await Clients.Group(groupName).SendAsync("GroupCreated", groupName, admin, members);
+        }
+
         public Task JoinGroup(string groupName)
         {
             return Groups.AddToGroupAsync(Context.ConnectionId,groupName);

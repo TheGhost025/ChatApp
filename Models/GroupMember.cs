@@ -9,6 +9,7 @@ namespace ChatAppp.Models
         public string UserId { get; set; }
         [ForeignKey("Group")]
         public int GroupId { get; set; }
+        public bool IsAdmin { get; set; }
 
         // Navigation properties
         public ApplicationUser User { get; set; }
