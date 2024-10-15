@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Controllers
 {
@@ -27,66 +28,83 @@ namespace ChatApp.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateGroup([FromForm] CreateGroupRequest request)
         {
-            string uniqueFileName = null;
+            if (request == null || string.IsNullOrEmpty(request.GroupName) || request.Members == null || !request.Members.Any())
+                return BadRequest("Invalid data.");
 
-            // Check if the group image is provided and if it has a file length greater than 0
+            // Validate CreatorId
+            var creatorExists = await _context.Users.AnyAsync(u => u.Id == request.CreatorId);
+            if (!creatorExists)
+                return BadRequest("Invalid CreatorId.");
+
+            // Validate that members exist
+            var validMembers = await _context.Users
+                .Where(u => request.Members.Contains(u.Id))
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            if (validMembers.Count != request.Members.Count)
+                return BadRequest("One or more members do not exist.");
+
+            string uniqueFileName = null;
             if (request.GroupImage != null && request.GroupImage.Length > 0)
             {
-                // Define the folder where images will be stored
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/groups");
-                // Generate a unique filename for the image
                 uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(request.GroupImage.FileName);
-                // Combine the uploads folder path with the unique filename
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                // Ensure the uploads folder exists
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // Copy the file to the server
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await request.GroupImage.CopyToAsync(fileStream);
                 }
 
-                // Set the image URL for saving in the database
                 request.ImageUrl = $"/images/groups/{uniqueFileName}";
             }
-            if (request == null || string.IsNullOrEmpty(request.GroupName) || request.Members == null || request.Admins == null)
-                return BadRequest("Invalid data.");
 
-            // Create the group
             var group = new Group
             {
                 Name = request.GroupName,
                 CreatorId = request.CreatorId,
                 PhotoUrl = request.ImageUrl,
             };
-            _context.Groups.Add(group);
-            await _context.SaveChangesAsync();
 
-            // Add members to the group and set admins
-            foreach (var memberId in request.Members)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                bool isAdmin = request.Admins.Contains(memberId); // Check if this member is an admin
-                _context.GroupMembers.Add(new GroupMember
+                _context.Groups.Add(group);
+                await _context.SaveChangesAsync();
+
+                // Add members
+                foreach (var memberId in validMembers)
                 {
-                    GroupId = group.Id,
-                    UserId = memberId,
-                    IsAdmin = isAdmin
-                });
+                    bool isAdmin = request.Admins?.Contains(memberId) ?? false;
+                    _context.GroupMembers.Add(new GroupMember
+                    {
+                        GroupId = group.Id,
+                        UserId = memberId,
+                        IsAdmin = isAdmin
+                    });
 
-                // Add the member to the SignalR group for real-time communication
-                await _hubContext.Groups.AddToGroupAsync(memberId, group.Name);
+                    await _hubContext.Groups.AddToGroupAsync(memberId, group.Name);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await _hubContext.Clients.Group(group.Name).SendAsync("GroupCreated", group.Name, request.Admins, validMembers);
+
+                return Ok(new { GroupId = group.Id, GroupName = group.Name });
             }
-            await _context.SaveChangesAsync();
-
-            // Notify all members of the new group and admins
-            await _hubContext.Clients.Group(group.Name).SendAsync("GroupCreated", group.Name, request.Admins, request.Members);
-
-            return Ok(new { GroupId = group.Id, GroupName = group.Name });
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
+
     }
 }

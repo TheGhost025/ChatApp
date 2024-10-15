@@ -188,7 +188,7 @@ document.getElementById("searchNewUserInput").addEventListener("input", async fu
 async function sendFriendRequest(userId) {
     try
     {
-        const response = await axios.post("/Chat/SendFriendRequest",
+        const response = await axios.post("/FriendRequest/SendFriendRequest",
              userId ,
             {
                 headers: {
@@ -315,7 +315,7 @@ async function loadRecentChats() {
 
                 groupElement.innerHTML = `
             <div class="group-profile">
-                <img src="/images/${group.photoUrl || 'default-group.jpg'}" alt="${group.name}" />
+                <img src="${group.photoUrl || 'default-group.jpg'}" alt="${group.name}" />
                 <p>${group.name}</p>
             </div>
         `;
@@ -404,97 +404,186 @@ document.getElementById("toggle-friend-requests").addEventListener("click", func
 });
 
 // Show the group creation modal when the "Create Group" button is clicked
-document.getElementById('createGroupButton').addEventListener('click', function () {
-    const userId = document.getElementById('userName').dataset.id; // Assume there's a hidden element with user ID
-    fetchFriendsForGroup();  // Fetch friends dynamically for the logged-in user
-    document.getElementById('createGroupModal').style.display = 'block'; // Show modal
-});
-
-// Fetch friends and populate the modal with member list and admin select dropdown
-function fetchFriendsForGroup() {
-    axios.get(`/GetFriends`)
-        .then(response => {
-            const friends = response.data;
-            const friendsListForGroup = document.getElementById('friendsListForGroup');
-            const adminSelect = document.getElementById('adminSelect');
-
-            // Clear the previous list of friends and admin options
-            friendsListForGroup.innerHTML = '';
-            adminSelect.innerHTML = '';
-
-            // Populate the friends list and the admin select dropdown
-            friends.forEach(friend => {
-                // Create a checkbox for each friend
-                const friendCheckbox = `
-                        <div>
-                            <input type="checkbox" id="friend_${friend.friendId}" value="${friend.friendId}">
-                            <label for="friend_${friend.friendId}">${friend.friendName}</label>
-                        </div>`;
-                friendsListForGroup.innerHTML += friendCheckbox;
-
-                // Add friend as an option in the admin dropdown
-                const adminOption = `<option value="${friend.friendId}">${friend.friendName}</option>`;
-                adminSelect.innerHTML += adminOption;
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching friends:', error);
-        });
-}
-
-// Close the modal when the "Cancel" button is clicked
-document.getElementById('cancelGroupButton').addEventListener('click', function () {
-    document.getElementById('createGroupModal').style.display = 'none'; // Hide modal
-});
-
-// Handle group creation
-// Handle the form submission for creating the group
-document.getElementById('createGroupSubmitButton').addEventListener('click', function () {
-    const groupName = document.getElementById('groupNameInput').value;
-
-    // Get selected members
-    const selectedMembers = [];
-    document.querySelectorAll('#friendsListForGroup input[type="checkbox"]:checked').forEach(checkbox => {
-        selectedMembers.push(checkbox.value);
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('createGroupButton').addEventListener('click', function () {
+        fetchFriendsForGroup(); // Fetch friends dynamically when opening the modal
+        document.getElementById('createGroupModal').style.display = 'block'; // Show modal
     });
 
-    // Get selected admin
-    const selectedAdmin = document.getElementById('adminSelect').value;
+    // Fetch friends and populate the modal with the member list
+    function fetchFriendsForGroup() {
+        const friendsListForGroup = document.getElementById('friendsListForGroup');
+        const adminSelect = document.getElementById('adminSelect');
 
-    // Get the group image file
-    const groupImage = document.getElementById('groupImageInput').files[0];
+        // Clear previous list of friends and admin options
+        friendsListForGroup.innerHTML = '';
+        adminSelect.innerHTML = ''; // Reset admin options
 
-    // Get user ID (assuming you have a way to identify the logged-in user)
-    const userId = document.getElementById('userName').dataset.id;
+        axios.get('/GetFriends')
+            .then(response => {
+                const friends = response.data;
 
-    // Create FormData object for sending image and other data
-    const formData = new FormData();
-    formData.append('groupName', groupName);
-    formData.append('members', JSON.stringify(selectedMembers));
-    formData.append('admin', selectedAdmin);
-    formData.append('creatorId', userId);
-    formData.append('groupImage', groupImage); // Attach the group image file
+                if (friends.length === 0) {
+                    friendsListForGroup.innerHTML = '<p>No friends available to add to the group.</p>';
+                    return;
+                }
 
-    // Send the API request to create the group
-    axios.post('/api/groups/create', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
-        .then(response => {
-            console.log('Group created successfully:', response.data);
-            document.getElementById('createGroupModal').style.display = 'none'; // Hide modal after success
-        })
-        .catch(error => {
-            console.error('Error creating group:', error);
+                // Populate the friends list
+                friends.forEach(friend => {
+                    // Create a div to hold friend info (image, checkbox, and label)
+                    const friendItem = document.createElement('div');
+                    friendItem.classList.add('friend-item'); // You can style this with CSS
+
+                    // Create an image element for the friend's profile picture
+                    const friendImage = document.createElement('img');
+                    friendImage.src = `/images/${friend.photoUrl}`; // Assuming the image URL follows this structure
+                    friendImage.alt = `${friend.friendName}'s profile picture`;
+                    friendImage.classList.add('friend-image');
+                    friendImage.style.width = '40px'; // Set image size
+                    friendImage.style.height = '40px';
+                    friendImage.style.borderRadius = '50%'; // Make it a circular image
+
+                    // Create a checkbox for selecting the friend
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `friend_${friend.friendId}`;
+                    checkbox.value = friend.friendId;
+                    checkbox.classList.add('member-checkbox'); // For event listener
+
+                    // Create a label for the friend's name
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.textContent = friend.friendName;
+
+                    // Append the image, checkbox, and label to the friend item
+                    friendItem.appendChild(friendImage);
+                    friendItem.appendChild(checkbox);
+                    friendItem.appendChild(label);
+
+                    // Append the friend item to the friends list
+                    friendsListForGroup.appendChild(friendItem);
+                });
+
+                // Add event listener to update admin select when members are chosen
+                document.querySelectorAll('.member-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', updateAdminSelect);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching friends:', error);
+                friendsListForGroup.innerHTML = '<p>Error loading friends.</p>';
+            });
+    }
+
+    // Update the admin select dropdown based on selected members
+    function updateAdminSelect() {
+        const adminSelect = document.getElementById('adminSelect');
+        const selectedMembers = [];
+
+        // Get all selected members
+        document.querySelectorAll('.member-checkbox:checked').forEach(checkbox => {
+            const friendId = checkbox.value;
+            const friendName = checkbox.nextElementSibling.textContent; // Get the label text (friend's name)
+            selectedMembers.push({ friendId, friendName });
         });
+
+        // Clear the admin select dropdown
+        adminSelect.innerHTML = '';
+
+        // Populate the admin select dropdown with selected members
+        selectedMembers.forEach(member => {
+            const adminOption = document.createElement('option');
+            adminOption.value = member.friendId;
+            adminOption.textContent = member.friendName;
+            adminSelect.appendChild(adminOption);
+        });
+    }
+
+    // Close the modal when the "Cancel" button is clicked
+    document.getElementById('cancelGroupButton').addEventListener('click', function () {
+        document.getElementById('createGroupModal').style.display = 'none'; // Hide modal
+        clearGroupForm(); // Clear form data
+    });
+
+    // Handle group creation
+    document.getElementById('createGroupSubmitButton').addEventListener('click', function () {
+        const groupName = document.getElementById('groupNameInput').value.trim();
+
+        if (!groupName) {
+            alert('Please enter a group name.');
+            return;
+        }
+
+        // Get selected members
+        const selectedMembers = [];
+        document.querySelectorAll('#friendsListForGroup input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedMembers.push(checkbox.value);
+        });
+
+        if (selectedMembers.length === 0) {
+            alert('Please select at least one member.');
+            return;
+        }
+
+        // Get selected admins from selected members
+        const selectedAdmins = Array.from(document.getElementById('adminSelect').selectedOptions).map(option => option.value);
+
+        if (selectedAdmins.length === 0) {
+            alert('Please select at least one admin.');
+            return;
+        }
+
+        // Get the group image file
+        const groupImage = document.getElementById('groupImageInput').files[0];
+
+        if (!groupImage) {
+            alert('Please upload a group image.');
+            return;
+        }
+
+        // Get user ID (assumed to be stored in a hidden element with user info)
+        const userId = document.getElementById('userName').dataset.id;
+
+        // Create FormData object for sending image and other data
+        const formData = new FormData();
+        formData.append('groupName', groupName);
+        selectedAdmins.push(userId);
+        selectedMembers.push(userId);
+        // Append each member individually to ensure they are sent as an array
+        selectedMembers.forEach(member => formData.append("Members", member));
+
+        // Append each admin individually
+        selectedAdmins.forEach(admin => formData.append("Admins", admin));
+
+        formData.append('creatorId', userId); // The logged-in user's ID
+        formData.append('groupImage', groupImage); // Attach the group image file
+
+        // Send the API request to create the group
+        axios.post('/api/groups/create', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+            .then(response => {
+                console.log('Group created successfully:', response.data);
+                document.getElementById('createGroupModal').style.display = 'none'; // Hide modal after success
+                clearGroupForm(); // Clear form data
+            })
+            .catch(error => {
+                console.error('Error creating group:', error);
+                alert('Failed to create the group. Please try again.');
+            });
+    });
+
+    // Clear the group form after submission or when closing the modal
+    function clearGroupForm() {
+        document.getElementById('groupNameInput').value = '';
+        document.getElementById('groupImageInput').value = '';
+        document.getElementById('friendsListForGroup').innerHTML = '';
+        document.getElementById('adminSelect').innerHTML = ''; // Reset admin options
+    }
 });
 
-
-// Handle cancel button
-document.getElementById('cancelGroupButton').addEventListener('click', function () {
-    document.getElementById('createGroupModal').style.display = 'none';
-});
 
 
 
