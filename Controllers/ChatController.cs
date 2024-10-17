@@ -98,25 +98,54 @@ namespace ChatApp.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Get recent chats where the user is either sender or receiver
-            var recentChats = _context.Messages
+            // Fetch messages where the user is either sender, receiver, or part of a group
+            var messages = _context.Messages
                 .Where(m => m.SenderId == userId || m.ReceiverId == userId || m.Group.GroupMembers.Any(gm => gm.UserId == userId))
-                .GroupBy(m => new { m.SenderId, m.ReceiverId, m.GroupId })  // Group by sender-receiver or group
-                .Select(group => new {
-                    ConversationId = group.Key.GroupId.ToString() ?? (group.Key.SenderId + "-" + group.Key.ReceiverId), // Use groupId or combine user ids
-                    LastMessage = group.OrderByDescending(m => m.Timestamp).FirstOrDefault().Content,
-                    LastMessageTimestamp = group.OrderByDescending(m => m.Timestamp).FirstOrDefault().Timestamp,
-                    ChatPartner = group.Key.GroupId.HasValue ? group.FirstOrDefault().Group.Name :
-                                  (group.Key.SenderId == userId ? group.FirstOrDefault().Receiver.FirstName + " " + group.FirstOrDefault().Receiver.LastName
-                                                                 : group.FirstOrDefault().Sender.FirstName + " " + group.FirstOrDefault().Sender.LastName),
-                    PhotoUrl = group.Key.GroupId.HasValue ? group.FirstOrDefault().Group.PhotoUrl :
-                                (group.Key.SenderId == userId ? group.FirstOrDefault().Receiver.PhotoName : group.FirstOrDefault().Sender.PhotoName)
+                .ToList();  // Materialize the result to work in memory
+
+            var recentChats = messages
+                .GroupBy(m => m.GroupId.HasValue
+                            ? m.GroupId.ToString()  // Use GroupId for group chats
+                            : (m.SenderId == userId ? m.ReceiverId : m.SenderId))  // Use the other user's ID for one-on-one chats
+                .Select(group => {
+                    var lastMessage = group.OrderByDescending(m => m.Timestamp).FirstOrDefault();
+
+                    if (lastMessage == null)
+                    {
+                        return null; // Handle case where there is no message
+                    }
+
+                    var chatPartner = lastMessage.GroupId.HasValue && lastMessage.Group != null
+                        ? lastMessage.Group.Name  // For group chats
+                        : (lastMessage.SenderId == userId && lastMessage.Receiver != null
+                            ? _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).FirstName + " " + _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).LastName
+                            : _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).FirstName + " " + _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).LastName);  // For direct messages, use null checks
+
+                    var photoUrl = lastMessage.GroupId.HasValue && lastMessage.Group != null
+                        ? lastMessage.Group.PhotoUrl
+                        : (lastMessage.SenderId == userId && lastMessage.Receiver != null
+                            ? _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).PhotoName
+                            : _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).PhotoName); // Use null checks here as well
+
+                    return new
+                    {
+                        ConversationId = lastMessage.GroupId.HasValue && lastMessage.Group != null
+                            ? lastMessage.GroupId.ToString()  // For group chats, use GroupId
+                            : (lastMessage.SenderId == userId ? lastMessage.ReceiverId : lastMessage.SenderId), // For one-on-one chats
+                        LastMessage = lastMessage.Content,
+                        LastMessageTimestamp = lastMessage.Timestamp,
+                        ChatPartner = chatPartner,
+                        PhotoUrl = photoUrl
+                    };
+
                 })
                 .OrderByDescending(c => c.LastMessageTimestamp)
                 .ToList();
 
             return Ok(recentChats);
         }
+
+
 
 
         [HttpGet("GetGroups")]
@@ -148,6 +177,25 @@ namespace ChatApp.Controllers
             // Return the user's chat history, you might need to modify this depending on your data structure
             var chatHistory = await _userService.GetPrivateChatIdByName(userId,reciverId);
             return Ok(chatHistory);
+        }
+
+
+        [HttpGet("GetGroupMessages")]
+        public IActionResult GetGroupMessages(int groupId)
+        {
+            var messages = _context.Messages
+                .Where(m => m.GroupId == groupId)
+                .OrderBy(m => m.Timestamp)
+                .Select(m => new
+                {
+                    Sender = m.Sender.FirstName + " " + m.Sender.LastName,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp,
+                    SenderPhotoUrl = m.Sender.PhotoName // Include the sender's photo URL
+                })
+                .ToList();
+
+            return Ok(messages);
         }
 
     }

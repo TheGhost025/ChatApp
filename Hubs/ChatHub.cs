@@ -3,6 +3,7 @@ using ChatAppp.Entity;
 using ChatAppp.Enum;
 using ChatAppp.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Plugins;
 
 namespace ChatApp.Hubs
@@ -57,6 +58,7 @@ namespace ChatApp.Hubs
         {
             var senderId = Context.UserIdentifier;
 
+            // Retrieve the group ID by group name
             var groupId = await _groupSrvice.GetGroupIdByName(groupName);
 
             if (groupId == 0)
@@ -64,6 +66,14 @@ namespace ChatApp.Hubs
                 throw new HubException("Group Not Found");
             }
 
+            // Retrieve the sender details (name and photo)
+            var sender = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == senderId);
+            if (sender == null)
+            {
+                throw new HubException("Sender not found");
+            }
+
+            // Create the message and save it to the database
             var message = new ChatAppp.Models.Message
             {
                 SenderId = senderId,
@@ -77,8 +87,22 @@ namespace ChatApp.Hubs
             _dbContext.Messages.Add(message);
             await _dbContext.SaveChangesAsync();
 
-            await Clients.Group(groupName).SendAsync("ReceiveMessage", message);
+            // Prepare the data to be sent to the clients, including sender's name and photo
+            var messageData = new
+            {
+                SenderId = senderId,
+                SenderName = $"{sender.FirstName} {sender.LastName}",  // Concatenate sender's first and last name
+                SenderPhotoUrl = sender.PhotoName,  // Assuming this is the path to the sender's profile photo
+                Content = messageContent,
+                MessageType = messageType,
+                FileUrl = fileUrl,
+                Timestamp = message.Timestamp
+            };
+
+            // Broadcast the message to the group along with the sender's name and photo
+            await Clients.Group(groupName).SendAsync("ReceiveMessage", messageData);
         }
+
 
         // Method to notify the receiver about the friend request
         public async Task SendFriendRequestNotification(string receiverId, string senderName)

@@ -191,6 +191,11 @@
     flex-direction:column;
 }
 /* Message bubbles */
+.message-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
 .message {
     padding: 10px;
     border-radius: 15px;
@@ -209,6 +214,20 @@
         background-color: #f1f1f1;
         align-self: flex-start;
     }
+
+.profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.sent .profile-image {
+    order: 2; /* Move the image to the right for sent messages */
+}
+
+.received .profile-image {
+    order: 1; /* Move the image to the left for received messages */
+}
 
 /* Chat input field and send button */
 .chat-input {

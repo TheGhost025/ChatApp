@@ -271,8 +271,8 @@ async function loadRecentChats() {
             const chatElement = document.createElement("div");
             chatElement.classList.add("chat-item");
             chatElement.dataset.chatId = chat.conversationId;
-            friendElement.dataset.chatName = chat.chatPartner;
-            friendElement.dataset.chatImage = chat.photoUrl;
+            chatElement.dataset.chatName = chat.chatPartner;
+            chatElement.dataset.chatImage = chat.photoUrl;
 
             chatElement.innerHTML = `
             <div class="chat-profile">
@@ -291,6 +291,7 @@ async function loadRecentChats() {
                 const chatId = event.target.closest('.chat-item').dataset.chatId;
                 const name = event.target.closest('.chat-item').dataset.chatName;
                 const image = event.target.closest('.chat-item').dataset.chatImage;
+                document.getElementById("chat-container").dataset.receiverId = chatId;
                 startChat(chatId,name,image);
             }
         });
@@ -312,6 +313,8 @@ async function loadRecentChats() {
                 const groupElement = document.createElement("div");
                 groupElement.classList.add("group-item");
                 groupElement.dataset.chatId = group.id;
+                groupElement.dataset.chatName = group.name;
+                groupElement.dataset.chatImage = group.photoUrl;
 
                 groupElement.innerHTML = `
             <div class="group-profile">
@@ -323,13 +326,16 @@ async function loadRecentChats() {
                 groupsList.appendChild(groupElement);
             });
 
-            //// Add click event listeners for starting chat
-            //groupsList.addEventListener('click', (event) => {
-            //    if (event.target.closest('.group-item')) {
-            //        const chatId = event.target.closest('.group-item').dataset.chatId;
-            //        startChat(chatId);
-            //    }
-            //});
+            // Add click event listeners for starting chat
+            groupsList.addEventListener('click', (event) => {
+                if (event.target.closest('.group-item')) {
+                    const chatId = event.target.closest('.group-item').dataset.chatId;
+                    const name = event.target.closest('.group-item').dataset.chatName;
+                    const image = event.target.closest('.group-item').dataset.chatImage;
+                    document.getElementById("chat-container").dataset.receiverId = chatId;
+                    startGroupChat(chatId, name, image);
+                }
+            });
         } catch (error) {
             console.error("Error loading groups:", error);
         }
@@ -370,6 +376,59 @@ async function startChat(targetId,name,image) {
         console.error("Error starting chat:", error);
     }
 }
+
+// Function to start a group chat
+async function startGroupChat(groupId, groupName, groupImage) {
+    // Update the group name in the UI
+    document.getElementById('reciverName').textContent = groupName;
+
+    // Update the group image, fallback to default if no image is found
+    const groupImageElement = document.getElementById('reciverImage');
+    groupImageElement.src =  groupImage || '/images/default-group.jpg';
+
+    console.log("Starting group chat with:", groupId);
+
+    try {
+        // Make an API call to get the group chat history
+        const response = await axios.get(`/GetGroupMessages?groupId=${groupId}`);
+        const chatHistory = response.data;
+
+        // Get the current user's ID to distinguish between sent and received messages
+        const senderId = document.getElementById('userName').dataset.id;
+
+        // Update the chat window with group chat history
+        const messagesList = document.getElementById("messagesList");
+        messagesList.innerHTML = ""; // Clear previous messages
+
+        chatHistory.forEach(message => {
+            // Create a message element
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" : "received");
+
+            // Add the sender's image
+            const senderImage = document.createElement("img");
+            senderImage.src = "/images/" + (message.senderImage || 'default-user.jpg');
+            senderImage.classList.add("profile-image");
+
+            // Add the message bubble
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add("message");
+            messageBubble.innerHTML = `<p>${message.content}</p>`;
+
+            // Append sender image and message bubble
+            messageElement.appendChild(senderImage);
+            messageElement.appendChild(messageBubble);
+
+            // Append the message row to the messages list
+            messagesList.appendChild(messageElement);
+        });
+
+        console.log("Group chat started with:", groupId);
+    } catch (error) {
+        console.error("Error starting group chat:", error);
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', function () {
     loadFriends(); 
@@ -599,8 +658,13 @@ connection.start().then(function () {
         const messageContent = document.getElementById("messageInput").value;
         const receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
 
+        const parsedId = parseInt(receiverId);
+        const isGroupChat = !isNaN(parsedId); // If parsedId is a valid number, it's a group chat
+
+        const methodName = isGroupChat ? "SendMessageToGroup" : "SendMessage";
+
         // Call the SendMessage method on the backend
-        connection.invoke("SendMessage", receiverId, messageContent, 0 /* messageType */, null)
+        connection.invoke(methodName, receiverId, messageContent, 0 /* messageType */, null)
             .catch(function (err) {
                 return console.error(err.toString());
             });
@@ -616,14 +680,40 @@ connection.start().then(function () {
             return;
         }
 
-        // Create a new message element
-        const messageDiv = document.createElement("div");
+        if (isGroupChat) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message-row",  "sent");
 
-        messageDiv.classList.add('message', 'sent');
-        messageDiv.innerHTML = `<p>${messageContent}</p>`;
+            const userImageElement = document.getElementById("userImage");
+            const userImageSrc = userImageElement.src; // Get the 'src' attribute
 
-        console.log("Appending message to messagesList:", messageDiv);
-        messagesList.appendChild(messageDiv);
+            // Add the sender's image
+            const senderImage = document.createElement("img");
+            senderImage.src = userImageSrc;
+            senderImage.classList.add("profile-image");
+
+            // Add the message bubble
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add("message");
+            messageBubble.innerHTML = `<p>${messageContent}</p>`;
+
+            // Append sender image and message bubble
+            messageElement.appendChild(senderImage);
+            messageElement.appendChild(messageBubble);
+
+            // Append the message row to the messages list
+            messagesList.appendChild(messageElement);
+        }
+        else {
+            // Create a new message element
+            const messageDiv = document.createElement("div");
+
+            messageDiv.classList.add('message', 'sent');
+            messageDiv.innerHTML = `<p>${messageContent}</p>`;
+
+            console.log("Appending message to messagesList:", messageDiv);
+            messagesList.appendChild(messageDiv);
+        }
 
         // Auto-scroll to the bottom
         messagesList.scrollTop = messagesList.scrollHeight;
