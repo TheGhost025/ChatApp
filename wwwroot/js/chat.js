@@ -407,7 +407,7 @@ async function startGroupChat(groupId, groupName, groupImage) {
 
             // Add the sender's image
             const senderImage = document.createElement("img");
-            senderImage.src = "/images/" + (message.senderImage || 'default-user.jpg');
+            senderImage.src = "/images/" + (message.senderPhotoUrl || 'default-user.jpg');
             senderImage.classList.add("profile-image");
 
             // Add the message bubble
@@ -656,7 +656,7 @@ connection.start().then(function () {
     // Send message on button click
     document.getElementById("sendButton").addEventListener("click", function () {
         const messageContent = document.getElementById("messageInput").value;
-        const receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
+        var receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
 
         const parsedId = parseInt(receiverId);
         const isGroupChat = !isNaN(parsedId); // If parsedId is a valid number, it's a group chat
@@ -664,6 +664,7 @@ connection.start().then(function () {
         const methodName = isGroupChat ? "SendMessageToGroup" : "SendMessage";
 
         // Call the SendMessage method on the backend
+        receiverId = isGroupChat ? document.getElementById("reciverName").textContent : receiverId;
         connection.invoke(methodName, receiverId, messageContent, 0 /* messageType */, null)
             .catch(function (err) {
                 return console.error(err.toString());
@@ -682,7 +683,7 @@ connection.start().then(function () {
 
         if (isGroupChat) {
             const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row",  "sent");
+            messageElement.classList.add("message-row");
 
             const userImageElement = document.getElementById("userImage");
             const userImageSrc = userImageElement.src; // Get the 'src' attribute
@@ -694,7 +695,7 @@ connection.start().then(function () {
 
             // Add the message bubble
             const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
+            messageBubble.classList.add("message", "sent");
             messageBubble.innerHTML = `<p>${messageContent}</p>`;
 
             // Append sender image and message bubble

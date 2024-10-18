@@ -61,7 +61,7 @@ namespace ChatApp.Hubs
             // Retrieve the group ID by group name
             var groupId = await _groupSrvice.GetGroupIdByName(groupName);
 
-            if (groupId == 0)
+            if (groupId == null)
             {
                 throw new HubException("Group Not Found");
             }

@@ -1,5 +1,6 @@
 ﻿using ChatAppp.Enum;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ChatAppp.Models
 {
@@ -9,7 +10,7 @@ namespace ChatAppp.Models
         [ForeignKey("Sender")]
         public string SenderId { get; set; }
         [ForeignKey("Receiver")]
-        public string ReceiverId { get; set; }
+        public string? ReceiverId { get; set; }
         [ForeignKey("Group")]
         public int? GroupId { get; set; } // Nullable in case the message is not for a group
         public MessageType MessageType { get; set; }
@@ -18,8 +19,11 @@ namespace ChatAppp.Models
         public DateTime Timestamp { get; set; }
 
         // Navigation properties
+        [JsonIgnore]
         public ApplicationUser Sender { get; set; }
+        [JsonIgnore]
         public ApplicationUser Receiver { get; set; }
+        [JsonIgnore]
         public Group Group { get; set; }
     }
 }

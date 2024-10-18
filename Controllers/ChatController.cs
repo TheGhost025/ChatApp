@@ -188,6 +188,7 @@ namespace ChatApp.Controllers
                 .OrderBy(m => m.Timestamp)
                 .Select(m => new
                 {
+                    SenderId = m.SenderId,
                     Sender = m.Sender.FirstName + " " + m.Sender.LastName,
                     Content = m.Content,
                     Timestamp = m.Timestamp,
