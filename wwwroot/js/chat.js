@@ -366,66 +366,21 @@ async function startChat(targetId,name,image) {
 
         chatHistory.forEach(message => {
             const messageElement = document.createElement("div");
-            messageElement.classList.add("message", message.senderId == senderId ? "sent" :  "received" );
-            messageElement.innerHTML = `<p>${message.content}</p>`; // Assuming message has a 'text' property
-            messagesList.appendChild(messageElement);
-        });
-
-        console.log("Chat started with:", targetId);
-    } catch (error) {
-        console.error("Error starting chat:", error);
-    }
-}
-
-// Function to start a group chat
-async function startGroupChat(groupId, groupName, groupImage) {
-    // Update the group name in the UI
-    document.getElementById('reciverName').textContent = groupName;
-
-    // Update the group image, fallback to default if no image is found
-    const groupImageElement = document.getElementById('reciverImage');
-    groupImageElement.src =  groupImage || '/images/default-group.jpg';
-
-    console.log("Starting group chat with:", groupId);
-
-    try {
-        // Make an API call to get the group chat history
-        const response = await axios.get(`/GetGroupMessages?groupId=${groupId}`);
-        const chatHistory = response.data;
-
-        // Get the current user's ID to distinguish between sent and received messages
-        const senderId = document.getElementById('userName').dataset.id;
-
-        // Update the chat window with group chat history
-        const messagesList = document.getElementById("messagesList");
-        messagesList.innerHTML = ""; // Clear previous messages
-
-        chatHistory.forEach(message => {
-            // Create a message element
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" : "received");
-
-            // Add the sender's image
-            const senderImage = document.createElement("img");
-            senderImage.src = "/images/" + (message.senderPhotoUrl || 'default-user.jpg');
-            senderImage.classList.add("profile-image");
-
+            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" :  "received" );
             // Add the message bubble
             const messageBubble = document.createElement("div");
             messageBubble.classList.add("message");
             messageBubble.innerHTML = `<p>${message.content}</p>`;
 
             // Append sender image and message bubble
-            messageElement.appendChild(senderImage);
             messageElement.appendChild(messageBubble);
 
-            // Append the message row to the messages list
             messagesList.appendChild(messageElement);
         });
 
-        console.log("Group chat started with:", groupId);
+        console.log("Chat started with:", targetId);
     } catch (error) {
-        console.error("Error starting group chat:", error);
+        console.error("Error starting chat:", error);
     }
 }
 
@@ -649,6 +604,64 @@ document.addEventListener('DOMContentLoaded', function () {
 // SignalR connection setup
 const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
 
+// Function to start a group chat
+async function startGroupChat(groupId, groupName, groupImage) {
+
+    connection.invoke("JoinGroup", groupName)
+        .catch(function (err) {
+            return console.error(err.toString());
+        });
+
+    // Update the group name in the UI
+    document.getElementById('reciverName').textContent = groupName;
+
+    // Update the group image, fallback to default if no image is found
+    const groupImageElement = document.getElementById('reciverImage');
+    groupImageElement.src = groupImage || '/images/default-group.jpg';
+
+    console.log("Starting group chat with:", groupId);
+
+    try {
+        // Make an API call to get the group chat history
+        const response = await axios.get(`/GetGroupMessages?groupId=${groupId}`);
+        const chatHistory = response.data;
+
+        // Get the current user's ID to distinguish between sent and received messages
+        const senderId = document.getElementById('userName').dataset.id;
+
+        // Update the chat window with group chat history
+        const messagesList = document.getElementById("messagesList");
+        messagesList.innerHTML = ""; // Clear previous messages
+
+        chatHistory.forEach(message => {
+            // Create a message element
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" : "received");
+
+            // Add the sender's image
+            const senderImage = document.createElement("img");
+            senderImage.src = "/images/" + (message.senderPhotoUrl || 'default-user.jpg');
+            senderImage.classList.add("profile-image");
+
+            // Add the message bubble
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add("message");
+            messageBubble.innerHTML = `<p>${message.content}</p>`;
+
+            // Append sender image and message bubble
+            messageElement.appendChild(senderImage);
+            messageElement.appendChild(messageBubble);
+
+            // Append the message row to the messages list
+            messagesList.appendChild(messageElement);
+        });
+
+        console.log("Group chat started with:", groupId);
+    } catch (error) {
+        console.error("Error starting group chat:", error);
+    }
+}
+
 // Start the connection
 connection.start().then(function () {
     console.log("SignalR connection established");
@@ -659,7 +672,8 @@ connection.start().then(function () {
         var receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
 
         const parsedId = parseInt(receiverId);
-        const isGroupChat = !isNaN(parsedId); // If parsedId is a valid number, it's a group chat
+
+        const isGroupChat = !isNaN(parsedId) && Number.isInteger(Number(receiverId)); // If parsedId is a valid number, it's a group chat
 
         const methodName = isGroupChat ? "SendMessageToGroup" : "SendMessage";
 
@@ -683,7 +697,7 @@ connection.start().then(function () {
 
         if (isGroupChat) {
             const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row");
+            messageElement.classList.add("message-row", "sent");
 
             const userImageElement = document.getElementById("userImage");
             const userImageSrc = userImageElement.src; // Get the 'src' attribute
@@ -695,7 +709,7 @@ connection.start().then(function () {
 
             // Add the message bubble
             const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message", "sent");
+            messageBubble.classList.add("message");
             messageBubble.innerHTML = `<p>${messageContent}</p>`;
 
             // Append sender image and message bubble
@@ -709,8 +723,15 @@ connection.start().then(function () {
             // Create a new message element
             const messageDiv = document.createElement("div");
 
-            messageDiv.classList.add('message', 'sent');
-            messageDiv.innerHTML = `<p>${messageContent}</p>`;
+            messageDiv.classList.add('message-row', 'sent');
+
+            // Add the message bubble
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add("message");
+            messageBubble.innerHTML = `<p>${messageContent}</p>`;
+
+            // Append sender image and message bubble
+            messageDiv.appendChild(messageBubble);
 
             console.log("Appending message to messagesList:", messageDiv);
             messagesList.appendChild(messageDiv);
@@ -769,17 +790,54 @@ connection.on("ReceiveMessage", function (message) {
         return;
     }
 
-    // Create a new message element
-    const messageDiv = document.createElement("div");
-    const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
-    messageDiv.classList.add('message', messageClass);
-    messageDiv.innerHTML = `<p>${message.content}</p>`;
+    if (message.type == "Group") {
+        if (message.senderId !== currentUserId) {
+            // Create a new message element
+            const messageDiv = document.createElement("div");
+            const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
+            messageDiv.classList.add('message-row', messageClass);
 
-    console.log("Appending message to messagesList:", messageDiv);
-    messagesList.appendChild(messageDiv);
+            // Add the sender's image
+            const senderImage = document.createElement("img");
+            senderImage.src = "/images/" + message.senderPhotoUrl;
+            senderImage.classList.add("profile-image");
 
-    // Auto-scroll to the bottom
-    messagesList.scrollTop = messagesList.scrollHeight;
+            // Add the message bubble
+            const messageBubble = document.createElement("div");
+            messageBubble.classList.add("message");
+            messageBubble.innerHTML = `<p>${message.content}</p>`;
+
+            // Append sender image and message bubble
+            messageDiv.appendChild(senderImage);
+            messageDiv.appendChild(messageBubble);
+
+            console.log("Appending message to messagesList:", messageDiv);
+            messagesList.appendChild(messageDiv);
+
+            // Auto-scroll to the bottom
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+    }
+    else {
+        // Create a new message element
+        const messageDiv = document.createElement("div");
+        const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
+        messageDiv.classList.add('message-row', messageClass);
+
+        // Add the message bubble
+        const messageBubble = document.createElement("div");
+        messageBubble.classList.add("message");
+        messageBubble.innerHTML = `<p>${message.content}</p>`;
+
+        // Append sender image and message bubble
+        messageDiv.appendChild(messageBubble);
+
+        console.log("Appending message to messagesList:", messageDiv);
+        messagesList.appendChild(messageDiv);
+
+        // Auto-scroll to the bottom
+        messagesList.scrollTop = messagesList.scrollHeight;
+    }
 });
 
 

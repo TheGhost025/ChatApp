@@ -5,6 +5,7 @@ using ChatAppp.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Plugins;
+using System.Reflection;
 
 namespace ChatApp.Hubs
 {
@@ -30,6 +31,13 @@ namespace ChatApp.Hubs
                     throw new HubException("Invalid sender or receiver ID.");
                 }
 
+                // Retrieve the sender details (name and photo)
+                var sender = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == senderId);
+                if (sender == null)
+                {
+                    throw new HubException("Sender not found");
+                }
+
                 var message = new ChatAppp.Models.Message
                 {
                     SenderId = senderId,
@@ -43,7 +51,20 @@ namespace ChatApp.Hubs
                 _dbContext.Messages.Add(message);
                 await _dbContext.SaveChangesAsync();
 
-                await Clients.Users(receiverId).SendAsync("ReceiveMessage", message);
+                // Prepare the data to be sent to the clients, including sender's name and photo
+                var messageData = new
+                {
+                    SenderId = senderId,
+                    SenderName = $"{sender.FirstName} {sender.LastName}",  // Concatenate sender's first and last name
+                    SenderPhotoUrl = sender.PhotoName,  // Assuming this is the path to the sender's profile photo
+                    Content = messageContent,
+                    MessageType = messageType,
+                    FileUrl = fileUrl,
+                    Timestamp = message.Timestamp,
+                    Type = "Single"
+                };
+
+                await Clients.Users(receiverId).SendAsync("ReceiveMessage", messageData);
             }
             catch (Exception ex)
             {
@@ -96,7 +117,8 @@ namespace ChatApp.Hubs
                 Content = messageContent,
                 MessageType = messageType,
                 FileUrl = fileUrl,
-                Timestamp = message.Timestamp
+                Timestamp = message.Timestamp,
+                Type = "Group"
             };
 
             // Broadcast the message to the group along with the sender's name and photo
