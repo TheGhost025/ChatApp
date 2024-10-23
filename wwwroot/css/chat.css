@@ -210,8 +210,8 @@
 }
 
 .received {
-    justify-content: flex-end; /* Received messages on the right */
-    flex-direction: row; /* Image on the left, message on the right */
+    /*justify-content: flex-end;*/ /* Received messages on the right */
+    flex-direction: row-reverse; /* Image on the left, message on the right */
 }
 
 /* Message bubble styles */

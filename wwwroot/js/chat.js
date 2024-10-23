@@ -276,7 +276,7 @@ async function loadRecentChats() {
 
             chatElement.innerHTML = `
             <div class="chat-profile">
-                <img src="/images/${chat.photoUrl || 'default-chat.jpg'}" alt="${chat.chatPartner}" />
+                <img src="${Number.isInteger(Number(chatElement.dataset.chatId)) ? (chat.photoUrl || 'default-chat.jpg') : '/images/' +  (chat.photoUrl || 'default-chat.jpg')}" alt="${chat.chatPartner}" />
                 <p>${chat.chatPartner}</p>
                 <small>Last message: ${chat.lastMessage}</small>
             </div>
@@ -292,6 +292,7 @@ async function loadRecentChats() {
                 const name = event.target.closest('.chat-item').dataset.chatName;
                 const image = event.target.closest('.chat-item').dataset.chatImage;
                 document.getElementById("chat-container").dataset.receiverId = chatId;
+                Number.isInteger(Number(chatId)) ? startGroupChat(chatId, name, image) : 
                 startChat(chatId,name,image);
             }
         });

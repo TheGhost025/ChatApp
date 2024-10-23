@@ -115,21 +115,21 @@ namespace ChatApp.Controllers
                         return null; // Handle case where there is no message
                     }
 
-                    var chatPartner = lastMessage.GroupId.HasValue && lastMessage.Group != null
-                        ? lastMessage.Group.Name  // For group chats
-                        : (lastMessage.SenderId == userId && lastMessage.Receiver != null
+                    var chatPartner = lastMessage.GroupId.HasValue
+                        ? _context.Groups.FirstOrDefault(g => g.Id == lastMessage.GroupId).Name//lastMessage.Group.Name  // For group chats
+                        : (lastMessage.SenderId == userId
                             ? _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).FirstName + " " + _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).LastName
                             : _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).FirstName + " " + _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).LastName);  // For direct messages, use null checks
 
-                    var photoUrl = lastMessage.GroupId.HasValue && lastMessage.Group != null
-                        ? lastMessage.Group.PhotoUrl
-                        : (lastMessage.SenderId == userId && lastMessage.Receiver != null
+                    var photoUrl = lastMessage.GroupId.HasValue 
+                        ? _context.Groups.FirstOrDefault(g => g.Id == lastMessage.GroupId).PhotoUrl
+                        : (lastMessage.SenderId == userId
                             ? _context.Users.FirstOrDefault(u => u.Id == lastMessage.ReceiverId).PhotoName
                             : _context.Users.FirstOrDefault(u => u.Id == lastMessage.SenderId).PhotoName); // Use null checks here as well
 
                     return new
                     {
-                        ConversationId = lastMessage.GroupId.HasValue && lastMessage.Group != null
+                        ConversationId = lastMessage.GroupId.HasValue
                             ? lastMessage.GroupId.ToString()  // For group chats, use GroupId
                             : (lastMessage.SenderId == userId ? lastMessage.ReceiverId : lastMessage.SenderId), // For one-on-one chats
                         LastMessage = lastMessage.Content,
