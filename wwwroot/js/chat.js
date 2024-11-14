@@ -71,6 +71,14 @@ document.addEventListener("DOMContentLoaded", function () {
     loadPendingFriendRequests();
 });
 
+// Request permission for browser notifications
+document.addEventListener("DOMContentLoaded", () => {
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
+});
+
+
 // Function to load friend requests
 async function loadPendingFriendRequestsSender() {
     await axios.get('/GetPendingFriendRequestsSender')  // Call the API
@@ -126,6 +134,44 @@ function displayFriendRequestSender(requestData) {
 document.addEventListener('DOMContentLoaded', function () {
     loadPendingFriendRequestsSender();  // Load friend requests when the page loads
 });
+
+document.getElementById('searchFriendsButton').addEventListener('click', searchFriendsOrGroups);
+document.getElementById('searchFriendsInput').addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') searchFriendsOrGroups();
+});
+
+function searchFriendsOrGroups() {
+    const searchTerm = document.getElementById('searchFriendsInput').value.toLowerCase();
+    const friendsList = document.querySelectorAll('.friends-list div');
+    const groupsList = document.querySelectorAll('.groups-list div');
+    const recentChats = document.querySelectorAll('.chats-list div');
+
+    // Clear previous highlighting if any
+    friendsList.forEach(friend => friend.style.display = 'none');
+    groupsList.forEach(group => group.style.display = 'none');
+    recentChats.forEach(chat => chat.style.display = 'none');
+
+    // Search and filter through Friends
+    friendsList.forEach(friend => {
+        if (friend.textContent.toLowerCase().includes(searchTerm)) {
+            friend.style.display = 'block';
+        }
+    });
+
+    // Search and filter through Groups
+    groupsList.forEach(group => {
+        if (group.textContent.toLowerCase().includes(searchTerm)) {
+            group.style.display = 'block';
+        }
+    });
+
+    // Search and filter through Recent Chats
+    recentChats.forEach(chat => {
+        if (chat.textContent.toLowerCase().includes(searchTerm)) {
+            chat.style.display = 'block';
+        }
+    });
+}
 
 
 // Search New Users
@@ -792,16 +838,48 @@ connection.on("ReceiveMessage", function (message) {
     }
 
     if (message.type == "Group") {
-        if (message.senderId !== currentUserId) {
+        // Check if the chat window for the incoming message is NOT open
+        if (document.getElementById("chat-container").dataset.receiverId !== message.groupId) {
+
+            showAlert(message.content, message.groupId)
+        }
+            else if (message.senderId !== currentUserId) {
+                // Create a new message element
+                const messageDiv = document.createElement("div");
+                const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
+                messageDiv.classList.add('message-row', messageClass);
+
+                // Add the sender's image
+                const senderImage = document.createElement("img");
+                senderImage.src = "/images/" + message.senderPhotoUrl;
+                senderImage.classList.add("profile-image");
+
+                // Add the message bubble
+                const messageBubble = document.createElement("div");
+                messageBubble.classList.add("message");
+                messageBubble.innerHTML = `<p>${message.content}</p>`;
+
+                // Append sender image and message bubble
+                messageDiv.appendChild(senderImage);
+                messageDiv.appendChild(messageBubble);
+
+                console.log("Appending message to messagesList:", messageDiv);
+                messagesList.appendChild(messageDiv);
+
+                // Auto-scroll to the bottom
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+        }
+    else {
+        // Check if the chat window for the incoming message is NOT open
+        if (document.getElementById("chat-container").dataset.receiverId !== message.senderId) {
+            showAlert(message.content, message.senderId)
+        }
+        else {
             // Create a new message element
             const messageDiv = document.createElement("div");
             const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
             messageDiv.classList.add('message-row', messageClass);
-
-            // Add the sender's image
-            const senderImage = document.createElement("img");
-            senderImage.src = "/images/" + message.senderPhotoUrl;
-            senderImage.classList.add("profile-image");
 
             // Add the message bubble
             const messageBubble = document.createElement("div");
@@ -809,7 +887,6 @@ connection.on("ReceiveMessage", function (message) {
             messageBubble.innerHTML = `<p>${message.content}</p>`;
 
             // Append sender image and message bubble
-            messageDiv.appendChild(senderImage);
             messageDiv.appendChild(messageBubble);
 
             console.log("Appending message to messagesList:", messageDiv);
@@ -818,28 +895,38 @@ connection.on("ReceiveMessage", function (message) {
             // Auto-scroll to the bottom
             messagesList.scrollTop = messagesList.scrollHeight;
         }
-    }
-    else {
-        // Create a new message element
-        const messageDiv = document.createElement("div");
-        const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
-        messageDiv.classList.add('message-row', messageClass);
+        }
+});
 
-        // Add the message bubble
-        const messageBubble = document.createElement("div");
-        messageBubble.classList.add("message");
-        messageBubble.innerHTML = `<p>${message.content}</p>`;
+// Function to show alert
+function showAlert(message, chatId) {
+    const alertContainer = document.getElementById("notification-alert");
+    const alertMessage = document.getElementById("alert-message");
 
-        // Append sender image and message bubble
-        messageDiv.appendChild(messageBubble);
+    alertMessage.innerHTML = `<strong>${chatId}:</strong> ${message}`;
 
-        console.log("Appending message to messagesList:", messageDiv);
-        messagesList.appendChild(messageDiv);
+    alertContainer.style.display = "block";
 
-        // Auto-scroll to the bottom
-        messagesList.scrollTop = messagesList.scrollHeight;
+    // Automatically hide alert after a few seconds
+    setTimeout(closeAlert, 5000); // Adjust the timeout as needed
+}
+
+// Function to close alert
+function closeAlert() {
+    const alertContainer = document.getElementById("notification-alert");
+    alertContainer.style.display = "none";
+}
+
+// Assuming you're using SignalR or WebSocket for real-time messaging
+connection.on("ReceiveMessage", (chatId, message, senderName) => {
+    const chatContainer = document.getElementById("chat-container");
+
+    // Show alert if the chat window for this message is NOT open
+    if (!chatContainer.classList.contains("active") || chatContainer.dataset.receiverId !== chatId) {
+        showAlert(senderName, message, chatId);
     }
 });
+
 
 
 // Handle receiving friend request
