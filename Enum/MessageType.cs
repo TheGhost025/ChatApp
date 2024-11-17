@@ -4,6 +4,8 @@
     {
         Text,
         Photo,
-        VoiceNote
+        Video,
+        VoiceAudio,
+        File
     }
 }

@@ -9,6 +9,7 @@ using ChatAppp.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using NuGet.Protocol.Plugins;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace ChatApp.Controllers
 {
@@ -191,6 +192,8 @@ namespace ChatApp.Controllers
                     SenderId = m.SenderId,
                     Sender = m.Sender.FirstName + " " + m.Sender.LastName,
                     Content = m.Content,
+                    MessageType = m.MessageType,
+                    FileUrl = m.FileUrl,
                     Timestamp = m.Timestamp,
                     SenderPhotoUrl = m.Sender.PhotoName // Include the sender's photo URL
                 })
@@ -198,6 +201,45 @@ namespace ChatApp.Controllers
 
             return Ok(messages);
         }
+
+        [HttpPost("UploadMedia")]
+        public async Task<IActionResult> UploadMedia([FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                var uploadsFolder = Path.Combine("wwwroot/uploads");
+                Directory.CreateDirectory(uploadsFolder);
+
+                // Generate a unique file name to prevent collisions
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                // Save the file to the server
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Create a URL for the uploaded file
+                var fileUrl = $"/uploads/{fileName}";
+
+                // Return the file URL in the response
+                return Ok(new { Url = fileUrl });
+            }
+            catch (Exception ex)
+            {
+                // Log the error (if needed) and return a server error
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+                return StatusCode(500, "An error occurred while uploading the file.");
+            }
+        }
+
+
 
     }
 }

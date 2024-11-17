@@ -389,46 +389,65 @@ async function loadRecentChats() {
     }
 
 // Function to start a chat
-async function startChat(targetId,name,image) {
-    // You can either navigate to a chat page or open a chat interface/modal here
+async function startChat(targetId, name, image) {
+    const senderId = document.getElementById('userName').dataset.id;
 
-    const senderId = document.getElementById('userName').dataset.id
-
-    // Update the user name
     document.getElementById('reciverName').textContent = name;
-
-    // Update the user image, fallback to default if no image is found
     const userImage = document.getElementById('reciverImage');
-    userImage.src = "/images/" + image || '/images/default-user.jpg';
+    userImage.src = "/images/" + (image || 'default-user.jpg');
 
-    console.log("Starting chat with:", targetId);
     try {
-        // Make an API call to get the chat history
         const response = await axios.get(`/GetPrivateChat?reciverId=${targetId}`);
         const chatHistory = response.data;
 
-        // Update the chat window with chat history
         const messagesList = document.getElementById("messagesList");
-        messagesList.innerHTML = ""; // Clear previous messages
+        messagesList.innerHTML = "";
 
         chatHistory.forEach(message => {
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" :  "received" );
-            // Add the message bubble
-            const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
-            messageBubble.innerHTML = `<p>${message.content}</p>`;
-
-            // Append sender image and message bubble
-            messageElement.appendChild(messageBubble);
-
+            const messageElement = createMessageElement(
+                message.content,
+                message.senderId == senderId,
+                "/images/" + (message.senderPhotoUrl || 'default-user.jpg'),
+                message.messageType,
+                message.fileUrl,
+                null
+            );
             messagesList.appendChild(messageElement);
         });
-
-        console.log("Chat started with:", targetId);
     } catch (error) {
-        console.error("Error starting chat:", error);
+        console.error("Error loading chat history:", error);
     }
+}
+
+function createMessageElement(content, isSent, senderPhotoUrl, messageType, fileUrl = null,typeSent) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message-row", isSent ? "sent" : "received");
+
+    if (!isSent,typeSent == "Group") {
+        const senderImage = document.createElement("img");
+        senderImage.src = senderPhotoUrl || '/images/default-user.jpg';
+        senderImage.classList.add("profile-image");
+        messageElement.appendChild(senderImage);
+    }
+
+    const messageBubble = document.createElement("div");
+    messageBubble.classList.add("message");
+
+    // Determine the type of message and render accordingly
+    if (messageType === 0) {
+        messageBubble.innerHTML = `<p>${content}</p>`;
+    } else if (messageType === 1) {
+        messageBubble.innerHTML = `<img src="${fileUrl}" alt="Image" class="chat-image" />`;
+    } else if (messageType === 2) {
+        messageBubble.innerHTML = `<video controls class="chat-video"><source src="${fileUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+    } else if (messageType === 3) {
+        messageBubble.innerHTML = `<audio controls class="chat-audio"><source src="${fileUrl}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
+    } else {
+        messageBubble.innerHTML = `<p>Unsupported message type</p>`;
+    }
+
+    messageElement.appendChild(messageBubble);
+    return messageElement;
 }
 
 
@@ -653,59 +672,33 @@ const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build(
 
 // Function to start a group chat
 async function startGroupChat(groupId, groupName, groupImage) {
-
     connection.invoke("JoinGroup", groupName)
-        .catch(function (err) {
-            return console.error(err.toString());
-        });
+        .catch(err => console.error("Error joining group:", err.toString()));
 
-    // Update the group name in the UI
     document.getElementById('reciverName').textContent = groupName;
-
-    // Update the group image, fallback to default if no image is found
     const groupImageElement = document.getElementById('reciverImage');
     groupImageElement.src = groupImage || '/images/default-group.jpg';
 
-    console.log("Starting group chat with:", groupId);
-
     try {
-        // Make an API call to get the group chat history
         const response = await axios.get(`/GetGroupMessages?groupId=${groupId}`);
         const chatHistory = response.data;
 
-        // Get the current user's ID to distinguish between sent and received messages
-        const senderId = document.getElementById('userName').dataset.id;
-
-        // Update the chat window with group chat history
         const messagesList = document.getElementById("messagesList");
-        messagesList.innerHTML = ""; // Clear previous messages
+        messagesList.innerHTML = "";
 
         chatHistory.forEach(message => {
-            // Create a message element
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row", message.senderId == senderId ? "sent" : "received");
-
-            // Add the sender's image
-            const senderImage = document.createElement("img");
-            senderImage.src = "/images/" + (message.senderPhotoUrl || 'default-user.jpg');
-            senderImage.classList.add("profile-image");
-
-            // Add the message bubble
-            const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
-            messageBubble.innerHTML = `<p>${message.content}</p>`;
-
-            // Append sender image and message bubble
-            messageElement.appendChild(senderImage);
-            messageElement.appendChild(messageBubble);
-
-            // Append the message row to the messages list
+            const messageElement = createMessageElement(
+                message.content,
+                message.senderId == document.getElementById('userName').dataset.id,
+                "/images/" + (message.senderPhotoUrl || 'default-user.jpg'),
+                message.messageType,
+                message.fileUrl,
+                "Group"
+            );
             messagesList.appendChild(messageElement);
         });
-
-        console.log("Group chat started with:", groupId);
     } catch (error) {
-        console.error("Error starting group chat:", error);
+        console.error("Error loading group chat history:", error);
     }
 }
 
@@ -714,79 +707,115 @@ connection.start().then(function () {
     console.log("SignalR connection established");
 
     // Send message on button click
-    document.getElementById("sendButton").addEventListener("click", function () {
-        const messageContent = document.getElementById("messageInput").value;
-        var receiverId = document.getElementById("chat-container").dataset.receiverId; // Assign receiver ID here
-
-        const parsedId = parseInt(receiverId);
-
-        const isGroupChat = !isNaN(parsedId) && Number.isInteger(Number(receiverId)); // If parsedId is a valid number, it's a group chat
-
-        const methodName = isGroupChat ? "SendMessageToGroup" : "SendMessage";
-
-        // Call the SendMessage method on the backend
-        receiverId = isGroupChat ? document.getElementById("reciverName").textContent : receiverId;
-        connection.invoke(methodName, receiverId, messageContent, 0 /* messageType */, null)
-            .catch(function (err) {
-                return console.error(err.toString());
-            });
-
-        // Clear the input field
-        document.getElementById("messageInput").value = "";
-
+    document.getElementById("sendButton").addEventListener("click", async function () {
+        const messageInput = document.getElementById("messageInput");
+        const fileInput = document.getElementById("fileInput");
         const messagesList = document.getElementById("messagesList");
+        const receiverIdElement = document.getElementById("chat-container").dataset.receiverId;
 
-        // Check if messagesList exists
-        if (!messagesList) {
-            console.error("Element with ID 'messagesList' not found.");
+        if (!messagesList || !receiverIdElement) {
+            console.error("Required elements not found.");
             return;
         }
 
-        if (isGroupChat) {
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("message-row", "sent");
+        let messageContent = messageInput.value.trim(); // Text message content
+        const file = fileInput?.files[0]; // Selected file (photo, video, or audio)
+        let fileUrl = null;
+        let messageType = 0; // Default to text
 
-            const userImageElement = document.getElementById("userImage");
-            const userImageSrc = userImageElement.src; // Get the 'src' attribute
+        // Upload the file if provided
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
 
-            // Add the sender's image
-            const senderImage = document.createElement("img");
-            senderImage.src = userImageSrc;
-            senderImage.classList.add("profile-image");
+            try {
+                const uploadResponse = await axios.post("/UploadMedia", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                fileUrl = uploadResponse.data.url; // Assuming server returns { Url: "uploaded_file_url" }
 
-            // Add the message bubble
-            const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
-            messageBubble.innerHTML = `<p>${messageContent}</p>`;
-
-            // Append sender image and message bubble
-            messageElement.appendChild(senderImage);
-            messageElement.appendChild(messageBubble);
-
-            // Append the message row to the messages list
-            messagesList.appendChild(messageElement);
-        }
-        else {
-            // Create a new message element
-            const messageDiv = document.createElement("div");
-
-            messageDiv.classList.add('message-row', 'sent');
-
-            // Add the message bubble
-            const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
-            messageBubble.innerHTML = `<p>${messageContent}</p>`;
-
-            // Append sender image and message bubble
-            messageDiv.appendChild(messageBubble);
-
-            console.log("Appending message to messagesList:", messageDiv);
-            messagesList.appendChild(messageDiv);
+                // Determine the message type based on file extension
+                const fileExtension = file.name.split(".").pop().toLowerCase();
+                if (["jpg", "jpeg", "png", "gif"].includes(fileExtension)) {
+                    messageType = 1; // Photo
+                } else if (["mp4", "mkv", "webm"].includes(fileExtension)) {
+                    messageType = 2; // Video
+                } else if (["mp3", "wav", "ogg"].includes(fileExtension)) {
+                    messageType = 3; // Audio
+                }
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                return;
+            }
         }
 
-        // Auto-scroll to the bottom
+        if (!messageContent && !fileUrl) {
+            console.error("No message content or file to send.");
+            return;
+        }
+
+        // Adjust receiver ID for group chats
+        const parsedId = parseInt(receiverIdElement);
+        const isGroupChat = !isNaN(parsedId) && Number.isInteger(Number(receiverIdElement));
+        const methodName = isGroupChat ? "SendMessageToGroup" : "SendMessage";
+        const receiverId = isGroupChat
+            ? document.getElementById("reciverName").textContent
+            : receiverIdElement;
+
+        // Invoke backend method
+        connection.invoke(methodName, receiverId, messageContent, messageType, fileUrl)
+            .catch(function (err) {
+                console.error("Error sending message:", err.toString());
+                return;
+            });
+
+        // Clear input fields
+        messageInput.value = "";
+        if (fileInput) fileInput.value = "";
+
+        // Display the message on the sender's side
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message-row", "sent");
+
+        // Add the appropriate content
+        const messageBubble = document.createElement("div");
+        messageBubble.classList.add("message");
+
+        if (messageType === 1) {
+            // Photo
+            const img = document.createElement("img");
+            img.src = fileUrl;
+            img.alt = "Sent photo";
+            img.classList.add("message-photo");
+            messageBubble.appendChild(img);
+        } else if (messageType === 2) {
+            // Video
+            const video = document.createElement("video");
+            video.src = fileUrl;
+            video.controls = true;
+            video.classList.add("message-video");
+            messageBubble.appendChild(video);
+        } else if (messageType === 3) {
+            // Audio
+            const audio = document.createElement("audio");
+            audio.src = fileUrl;
+            audio.controls = true;
+            audio.classList.add("message-audio");
+            messageBubble.appendChild(audio);
+        } else {
+            // Text
+            const text = document.createElement("p");
+            text.textContent = messageContent;
+            messageBubble.appendChild(text);
+        }
+
+        messageElement.appendChild(messageBubble);
+        messagesList.appendChild(messageElement);
+
+        // Automatically scroll to the bottom
         messagesList.scrollTop = messagesList.scrollHeight;
     });
+
 
     // Search within Friends/Groups
     document.getElementById("searchFriendsButton").addEventListener("click", function () {
@@ -837,66 +866,68 @@ connection.on("ReceiveMessage", function (message) {
         return;
     }
 
+    const isSentByCurrentUser = message.senderId === currentUserId;
+    const messageClass = isSentByCurrentUser ? 'sent' : 'received';
+
+    // Check if the message is from a group or a private chat
     if (message.type == "Group") {
         // Check if the chat window for the incoming message is NOT open
         if (document.getElementById("chat-container").dataset.receiverId !== message.groupId) {
-
-            showAlert(message.content, message.groupId)
-        }
-            else if (message.senderId !== currentUserId) {
-                // Create a new message element
-                const messageDiv = document.createElement("div");
-                const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
-                messageDiv.classList.add('message-row', messageClass);
-
-                // Add the sender's image
-                const senderImage = document.createElement("img");
-                senderImage.src = "/images/" + message.senderPhotoUrl;
-                senderImage.classList.add("profile-image");
-
-                // Add the message bubble
-                const messageBubble = document.createElement("div");
-                messageBubble.classList.add("message");
-                messageBubble.innerHTML = `<p>${message.content}</p>`;
-
-                // Append sender image and message bubble
-                messageDiv.appendChild(senderImage);
-                messageDiv.appendChild(messageBubble);
-
-                console.log("Appending message to messagesList:", messageDiv);
-                messagesList.appendChild(messageDiv);
-
-                // Auto-scroll to the bottom
-                messagesList.scrollTop = messagesList.scrollHeight;
-            }
-        }
-    else {
-        // Check if the chat window for the incoming message is NOT open
-        if (document.getElementById("chat-container").dataset.receiverId !== message.senderId) {
-            showAlert(message.content, message.senderId)
-        }
-        else {
+            showAlert(message.content, message.groupId);
+        } else {
             // Create a new message element
-            const messageDiv = document.createElement("div");
-            const messageClass = message.senderId === currentUserId ? 'sent' : 'received';
-            messageDiv.classList.add('message-row', messageClass);
-
-            // Add the message bubble
-            const messageBubble = document.createElement("div");
-            messageBubble.classList.add("message");
-            messageBubble.innerHTML = `<p>${message.content}</p>`;
-
-            // Append sender image and message bubble
-            messageDiv.appendChild(messageBubble);
-
-            console.log("Appending message to messagesList:", messageDiv);
+            const messageDiv = createMessageElement(message, messageClass, currentUserId, "Group");
             messagesList.appendChild(messageDiv);
-
-            // Auto-scroll to the bottom
             messagesList.scrollTop = messagesList.scrollHeight;
         }
+    } else {
+        // Check if the chat window for the incoming message is NOT open
+        if (document.getElementById("chat-container").dataset.receiverId !== message.senderId) {
+            showAlert(message.content, message.senderId);
+        } else {
+            // Create a new message element
+            const messageDiv = createMessageElement(message, messageClass, currentUserId,null);
+            messagesList.appendChild(messageDiv);
+            messagesList.scrollTop = messagesList.scrollHeight;
         }
+    }
 });
+
+function createMessageElement(message, messageClass, currentUserId,typeSent) {
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add('message-row', messageClass);
+
+
+    if (typeSent == "Gruop") {
+        // Add the sender's image
+        const senderImage = document.createElement("img");
+        senderImage.src = "/images/" + (message.senderPhotoUrl || 'default-user.jpg');
+        senderImage.classList.add("profile-image");
+    }
+
+    // Create the message bubble
+    const messageBubble = document.createElement("div");
+    messageBubble.classList.add("message");
+
+    // Handle different message types (text, photo, video, audio)
+    if (message.mediaType === "text") {
+        messageBubble.innerHTML = `<p>${message.content}</p>`;
+    } else if (message.messageType === "photo") {
+        messageBubble.innerHTML = `<img src="${message.fileUrl}" alt="Image" class="chat-image" />`;
+    } else if (message.messageType === "video") {
+        messageBubble.innerHTML = `<video controls class="chat-video"><source src="${message.fileUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+    } else if (message.messageType === "audio") {
+        messageBubble.innerHTML = `<audio controls class="chat-audio"><source src="${message.fileUrl}" type="audio/mpeg">Your browser does not support the audio element.</audio>`;
+    } else {
+        messageBubble.innerHTML = `<p>Unsupported message type</p>`;
+    }
+
+    // Append sender image and message bubble
+    messageDiv.appendChild(senderImage);
+    messageDiv.appendChild(messageBubble);
+
+    return messageDiv;
+}
 
 // Function to show alert
 function showAlert(message, chatId) {
