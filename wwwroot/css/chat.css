@@ -1,6 +1,7 @@
-﻿.notification-alert {
+﻿/* Notification Alert */
+.notification-alert {
     position: fixed;
-    top: 0;
+    top: -100px;
     width: 100%;
     background-color: #f44336;
     color: white;
@@ -8,17 +9,27 @@
     font-size: 16px;
     text-align: center;
     z-index: 1000;
+    animation: slideDown 0.5s forwards;
 }
 
-    .notification-alert button {
-        background-color: transparent;
-        color: white;
-        border: none;
-        font-weight: bold;
-        margin-left: 10px;
-        cursor: pointer;
+@keyframes slideDown {
+    from {
+        top: -100px;
     }
 
+    to {
+        top: 0;
+    }
+}
+
+.notification-alert button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    font-weight: bold;
+    margin-left: 10px;
+    cursor: pointer;
+}
 
 .chat-image {
     max-width: 200px;
@@ -26,21 +37,20 @@
     border-radius: 8px;
 }
 
-.chat-video, .chat-audio {
+.chat-video,
+.chat-audio {
     max-width: 200px;
     display: block;
     margin: 5px 0;
 }
 
-/* Container for the entire chat layout */
 .container {
     display: flex;
     flex-direction: row;
     height: 100vh;
-    padding-top: 60px; /* Adjust to create space for the top search bar */
+    padding-top: 60px;
 }
 
-/* New Users Search bar at the top */
 .search-bar-new {
     position: absolute;
     top: 0;
@@ -74,7 +84,7 @@
             background-color: #218838;
         }
 
-/* Sidebar styles */
+/* Sidebar Animation */
 .sidebar {
     width: 25%;
     background-color: #f4f4f4;
@@ -82,27 +92,44 @@
     flex-direction: column;
     padding: 20px;
     border-right: 1px solid #ddd;
+    animation: slideIn 0.5s ease-out;
 }
 
-/* Profile picture and name in the sidebar */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 .profile {
     text-align: center;
     margin-bottom: 20px;
 }
 
+    /* Sidebar Profile Image Animation */
     .profile img {
         border-radius: 50%;
         width: 80px;
         height: 80px;
         margin-bottom: 10px;
+        transition: transform 0.3s ease-in-out;
     }
+
+        .profile img:hover {
+            transform: rotate(360deg);
+        }
 
     .profile p {
         font-size: 16px;
         font-weight: bold;
     }
 
-/* Search bar styles for Friends/Groups */
 .search-bar {
     margin-bottom: 15px;
     display: flex;
@@ -130,79 +157,91 @@
             background-color: #0056b3;
         }
 
-/* Tabs at the bottom of the search bar */
 .tabs {
     display: flex;
     justify-content: space-around;
     margin-bottom: 15px;
 }
 
+    /* Tab Animation */
     .tabs button {
         flex-grow: 1;
         background-color: #e0e0e0;
         padding: 10px;
         border: none;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: background-color 0.3s ease, transform 0.2s;
     }
 
         .tabs button:hover {
             background-color: #c0c0c0;
+            transform: scale(1.05);
         }
 
         .tabs button.active {
             background-color: #007bff;
             color: white;
+            animation: tabHighlight 0.4s;
         }
 
-/* Base styles for the friends, groups, and recent chats lists */
-.chats-list, .friends-list, .groups-list {
-    padding: 10px;
-    background-color: #fff; /* White background for clarity */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    margin-bottom: 20px; /* Space between lists */
-}
-
-/* Individual friend/group/chat item */
-.friend-item, .group-item, .chat-item {
-    display: flex; /* Flexbox for alignment */
-    align-items: center; /* Center items vertically */
-    padding: 10px; /* Padding around each item */
-    border-bottom: 1px solid #ddd; /* Divider between items */
-    cursor: pointer; /* Change cursor to pointer on hover */
-    transition: background-color 0.2s; /* Smooth transition for hover effect */
-}
-
-    .friend-item:hover, .group-item:hover, .chat-item:hover {
-        background-color: #f0f0f0; /* Light background on hover */
+@keyframes tabHighlight {
+    from {
+        background-color: #0056b3;
     }
 
-.friend-profile, group-profile, .chat-profile {
-    display:flex;
-    flex-direction: row;
+    to {
+        background-color: #007bff;
+    }
 }
 
-/* Profile picture styles */
-.friend-profile img, .group-profile img, .chat-profile img {
-    width: 50px; /* Fixed width for consistency */
-    height: 50px; /* Fixed height for consistency */
-    border-radius: 50%; /* Circular profile pictures */
-    object-fit: cover; /* Ensure the image covers the space */
-    margin-right: 10px; /* Space between image and text */
+.chats-list,
+.friends-list,
+.groups-list {
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
-/* Text styles for names */
-.friend-profile p, .group-profile p, .chat-profile p {
-    font-size: 16px; /* Font size for names */
-    color: #333; /* Dark color for text */
-    margin-top: auto; /* Remove default margin */
-    font-weight: bold; /* Bold for emphasis */
+/* Friend, Group, Chat Item Animation */
+.friend-item,
+.group-item,
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s ease-in-out;
 }
 
+    .friend-item:hover,
+    .group-item:hover,
+    .chat-item:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.02);
+    }
 
+.friend-profile img,
+.group-profile img,
+.chat-profile img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
 
-/* Chat input container and message window */
+.friend-profile p,
+.group-profile p,
+.chat-profile p {
+    font-size: 16px;
+    color: #333;
+    margin: 0;
+    font-weight: bold;
+}
+
 .chat-input-container {
     width: 75%;
     display: flex;
@@ -211,6 +250,7 @@
     padding: 20px;
 }
 
+/* Smooth Scroll in Chat Window */
 .chat-window {
     flex-grow: 1;
     padding: 15px;
@@ -218,12 +258,43 @@
     margin-bottom: 20px;
     overflow-y: auto;
     background-color: #f9f9f9;
+    scroll-behavior: smooth;
 }
 
-#messagesList{
+#messagesList {
     display: flex;
-    flex-direction:column;
+    flex-direction: column;
 }
+
+.sent {
+    justify-content: flex-start;
+}
+
+.received {
+    flex-direction: row-reverse;
+}
+
+/* Chat Bubble Animation */
+.message {
+    padding: 10px;
+    border-radius: 15px;
+    max-width: 60%;
+    word-wrap: break-word;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 /* Message bubbles */
 .message-row {
     display: flex;
@@ -231,44 +302,14 @@
     margin-bottom: 10px;
 }
 
-/* Parent container styles */
-.received, .sent {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+.sent .message {
+    background-color: #dcf8c6;
+    align-self: flex-end;
 }
 
-/* Flex direction to control message and image position */
-.sent {
-    justify-content: flex-start; /* Sent messages on the left */
-}
-
-.received {
-    /*justify-content: flex-end;*/ /* Received messages on the right */
-    flex-direction: row-reverse; /* Image on the left, message on the right */
-}
-
-/* Message bubble styles */
-.message {
-    padding: 10px;
-    border-radius: 15px;
-    max-width: 70%;
-    word-wrap: break-word;
-    margin: 0 10px;
-}
-
-/* Sent message styling */
-.message-row.sent .message {
-    background-color: #007bff;
-    color: white;
-    text-align: left;
-}
-
-/* Received message styling */
-.message-row.received .message {
-    background-color: #f1f1f1;
-    color: black;
-    text-align: right;
+.received .message {
+    background-color: #ececec;
+    align-self: flex-start;
 }
 
 /* Profile image styles */
@@ -278,248 +319,121 @@
     border-radius: 50%;
 }
 
-
-/* Chat input field and send button */
 .chat-input {
     display: flex;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding: 10px 0;
 }
 
-    .chat-input input {
+    .chat-input input[type="text"] {
         flex-grow: 1;
         padding: 10px;
-        border-radius: 4px;
+        border-radius: 20px;
         border: 1px solid #ddd;
+        margin-right: 10px;
     }
 
-    .chat-input button {
-        margin-left: 10px;
-        padding: 10px;
+    .chat-input input[type="file"] {
+        display: none;
+    }
+
+    /* Chat Input Button Animation */
+    .chat-input .btn-send {
+        padding: 10px 20px;
         background-color: #007bff;
         border: none;
         color: white;
-        border-radius: 4px;
+        border-radius: 20px;
         cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
     }
 
-        .chat-input button:hover {
+        .chat-input .btn-send:hover {
             background-color: #0056b3;
+            transform: scale(1.1);
         }
 
-
-#searchResults {
-    display: none;
-}
-/* Styles for the search results container */
-.search-results {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    gap: 20px; /* Space between results */
-    position: absolute;
-    padding: 20px; /* Padding inside the container */
-    background-color: rgba(255, 255, 255, 0.9); /* Background color with opacity */
-    border-radius: 10px; /* Rounded corners for the container */
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    width: 75%; /* Set the width as needed */
-    height: auto; /* Adjust height to fit the content */
-    max-height: 600px; /* Maximum height for the container */
-    overflow-y: auto; /* Allow scrolling if content exceeds height */
+/* New Message Bounce Animation */
+.chat-input-container input:focus + .btn-send {
+    animation: bounce 0.5s infinite;
 }
 
-/* Styles for individual user results */
-.user-result {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 200px; /* Adjust width as needed */
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    background-color: #fff; /* Background color for individual result cards */
-    text-align: center;
-}
-
-    /* Styles for user profile image */
-    .user-result img {
-        border-radius: 50%;
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        margin-bottom: 10px;
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
     }
 
-    /* Styles for the send request button */
-    .user-result button {
-        margin-top: 10px;
-        padding: 5px 10px;
-        background-color: #28a745;
-        border: none;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
+    50% {
+        transform: translateY(-5px);
     }
-
-        /* Hover effect for the send request button */
-        .user-result button:hover {
-            background-color: #218838;
-        }
-
-/* Friend Requests Section */
-.friend-requests {
-    margin-top: 20px;
-    margin-left: 25%;
-    position: absolute;
-    padding: 20px; /* Padding inside the container */
-    background-color: rgba(255, 255, 255, 0.9); /* Background color with opacity */
-    border-radius: 10px; /* Rounded corners for the container */
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    height: auto; /* Adjust height to fit the content */
-    overflow-y: auto; /* Allow scrolling if content exceeds height */
 }
 
-    .friend-requests h3 {
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
-
-.request-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-.request-info {
-    display: flex;
-    align-items: center;
-}
-
-    .request-info img {
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        margin-right: 10px;
-    }
-
-    .request-info p {
-        margin: 0;
-    }
-
-.request-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-accept {
-    padding: 5px 10px;
-    background-color: #28a745;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-reject {
-    padding: 5px 10px;
-    background-color: #dc3545;
-    border: none;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-accept:hover {
-    background-color: #218838;
-}
-
-.btn-reject:hover {
-    background-color: #c82333;
-}
-
-/* Toggle Button for Friend Requests */
-.toggle-button {
-    position: relative; /* Position relative for the span */
-    padding: 10px 20px; /* Padding for the button */
-    font-size: 16px; /* Font size for button text */
-    background-color: #007bff; /* Button color */
-    color: white; /* Text color */
-    border: none; /* Remove default border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-}
-
-#numberofPendingFriends {
-    margin-left: 10px; /* Space between text and number */
-    background-color: red; /* Background for number */
-    color: white; /* Text color for number */
-    border-radius: 50%; /* Circular background */
-    padding: 2px 8px; /* Padding around number */
-    font-size: 14px; /* Font size for number */
-    position: absolute; /* Position absolute for number */
-    top: 5px; /* Adjust top position */
-    right: 5px; /* Adjust right position */
-}
-
-
-    .toggle-button:hover {
-        background-color: #0056b3;
-    }
-
-.message-notification {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-    .message-notification img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        margin-right: 10px;
-    }
-
-    .message-notification strong {
-        margin-right: 5px;
-    }
-
-    .message-notification p {
-        margin: 0;
-    }
-
+/* Modal Animation */
 .modal {
     position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
     background-color: white;
     padding: 20px;
     border-radius: 10px;
-    width: 400px;
-    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: popIn 0.4s forwards;
 }
 
-.btn-create-group {
-    margin: 10px;
+@keyframes popIn {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
-.btn-submit, .btn-cancel {
-    margin-top: 10px;
+.modal-content {
+    text-align: left;
 }
 
+    .modal-content h2 {
+        margin-top: 0;
+    }
+
+    .modal-content input,
+    .modal-content select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+.btn-submit,
+.btn-cancel {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-submit {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #ccc;
+    color: black;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.btn-cancel:hover {
+    background-color: #aaa;
+}

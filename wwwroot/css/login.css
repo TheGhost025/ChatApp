@@ -1,8 +1,89 @@
-﻿.container {
-    width: 450px;
-    margin: 0 auto;
-    padding: 30px;
+﻿/* Background Styling */
+body {
+    background: linear-gradient(120deg, #2980b9, #6dd5fa);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+/* Form Card Styling */
+.login-card {
+    background: #fff;
     border-radius: 10px;
-    background-color: #f7f7f7;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Registration Card Styling */
+.register-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    animation: slideIn 1s ease-out;
+}
+
+/* Input Styling */
+.form-control {
+    border-radius: 20px;
+    padding: 10px 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Button Styling */
+.btn-primary {
+    background: linear-gradient(45deg, #3498db, #6dd5fa);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #6dd5fa, #3498db);
+        transform: scale(1.05);
+    }
+
+.btn-secondary {
+    margin-top: 10px;
+    border-radius: 20px;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Slide-in Animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

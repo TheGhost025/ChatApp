@@ -876,7 +876,7 @@ connection.on("ReceiveMessage", function (message) {
             showAlert(message.content, message.groupId);
         } else {
             // Create a new message element
-            const messageDiv = createMessageElement(message, messageClass, currentUserId, "Group");
+            const messageDiv = createMessageElement1(message, messageClass, currentUserId, "Group");
             messagesList.appendChild(messageDiv);
             messagesList.scrollTop = messagesList.scrollHeight;
         }
@@ -886,17 +886,16 @@ connection.on("ReceiveMessage", function (message) {
             showAlert(message.content, message.senderId);
         } else {
             // Create a new message element
-            const messageDiv = createMessageElement(message, messageClass, currentUserId,null);
+            const messageDiv = createMessageElement1(message, messageClass, currentUserId,null);
             messagesList.appendChild(messageDiv);
             messagesList.scrollTop = messagesList.scrollHeight;
         }
     }
 });
 
-function createMessageElement(message, messageClass, currentUserId,typeSent) {
+function createMessageElement1(message, messageClass, currentUserId,typeSent) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add('message-row', messageClass);
-
 
     if (typeSent == "Gruop") {
         // Add the sender's image
