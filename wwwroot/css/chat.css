@@ -1,4 +1,54 @@
-﻿/* Notification Alert */
+﻿.toggle-button {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px 15px;
+    font-size: 1rem;
+    text-align: center;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+    .toggle-button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    .toggle-button:active {
+        background-color: #003d80;
+        transform: scale(1);
+    }
+
+    .toggle-button i {
+        margin-right: 8px;
+        font-size: 1.2rem;
+    }
+
+.logout-form {
+    margin-top: 10px;
+    text-align: center;
+}
+
+    .logout-form .btn-danger {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .logout-form .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+/* Notification Alert */
 .notification-alert {
     position: fixed;
     top: -100px;
@@ -125,37 +175,68 @@
             transform: rotate(360deg);
         }
 
+    .profile h3 {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+
     .profile p {
         font-size: 16px;
         font-weight: bold;
     }
 
 .search-bar {
-    margin-bottom: 15px;
     display: flex;
+    justify-content: center;
     align-items: center;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
 }
 
     .search-bar input {
-        flex-grow: 1;
-        padding: 10px;
-        border-radius: 4px;
+        flex: 1;
+        padding: 10px 15px;
+        font-size: 1rem;
         border: 1px solid #ddd;
+        border-radius: 6px;
+        outline: none;
+        transition: border-color 0.3s ease;
         margin-right: 10px;
     }
 
+        .search-bar input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
     .search-bar button {
-        padding: 10px;
+        padding: 10px 15px;
+        font-size: 1rem;
         background-color: #007bff;
-        border: none;
         color: white;
-        border-radius: 4px;
+        border: none;
+        border-radius: 6px;
         cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
         .search-bar button:hover {
             background-color: #0056b3;
+            transform: scale(1.05);
         }
+
+        .search-bar button:active {
+            background-color: #003d80;
+            transform: scale(1);
+        }
+
 
 .tabs {
     display: flex;
@@ -334,10 +415,16 @@
         margin-right: 10px;
     }
 
+    /* Styling for File Input */
     .chat-input input[type="file"] {
-        display: none;
+        flex: none;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        background-color: #f1f1f1;
+        cursor: pointer;
     }
-
     /* Chat Input Button Animation */
     .chat-input .btn-send {
         padding: 10px 20px;
@@ -369,71 +456,228 @@
     }
 }
 
-/* Modal Animation */
-.modal {
+/* General Friend Requests Section Styling */
+.friend-requests {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    animation: popIn 0.4s forwards;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    max-width: 600px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-@keyframes popIn {
-    from {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
+    .friend-requests h3 {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
     }
 
-    to {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
+/* Individual Friend Request Item Styling */
+.friend-request-item {
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    gap: 15px;
+    transition: box-shadow 0.3s ease;
+}
+
+    .friend-request-item:hover {
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
     }
+
+/* Friend Request Profile Image */
+.friend-request-profile img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #007bff;
+}
+
+/* Friend Request Info Section */
+.friend-request-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+    .friend-request-info p {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .friend-request-info small {
+        color: #777;
+        font-size: 0.9rem;
+    }
+
+/* Friend Request Actions Buttons */
+.friend-request-actions {
+    display: flex;
+    gap: 10px;
+}
+
+    .friend-request-actions button {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+        .friend-request-actions button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Accept Button */
+        .friend-request-actions button:first-child {
+            background-color: #28a745;
+            color: white;
+        }
+
+            .friend-request-actions button:first-child:hover {
+                background-color: #218838;
+            }
+
+        /* Reject/Cancel Button */
+        .friend-request-actions button:last-child {
+            background-color: #dc3545;
+            color: white;
+        }
+
+            .friend-request-actions button:last-child:hover {
+                background-color: #c82333;
+            }
+
+/* No Requests Message Styling */
+.friend-requests p {
+    text-align: center;
+    color: #555;
+    font-size: 1rem;
+    margin: 10px 0;
+}
+
+
+/* Modal Styling */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
 }
 
 .modal-content {
-    text-align: left;
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    padding: 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-    .modal-content h2 {
-        margin-top: 0;
-    }
+.modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    color: #333;
+    text-align: center;
+}
 
-    .modal-content input,
-    .modal-content select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
+.modal-content label {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 5px;
+    display: block;
+}
 
-.btn-submit,
-.btn-cancel {
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
+.modal-content input[type="text"],
+.modal-content input[type="file"],
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.members-list {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.members-list input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Buttons */
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .btn-submit {
     background-color: #007bff;
     color: white;
-}
-
-.btn-cancel {
-    background-color: #ccc;
-    color: black;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 48%;
 }
 
 .btn-submit:hover {
     background-color: #0056b3;
 }
 
-.btn-cancel:hover {
-    background-color: #aaa;
+.btn-cancel {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 48%;
 }
+
+.btn-cancel:hover {
+    background-color: #c62828;
+}
+
+/* Responsive Styling */
+@media (max-width: 500px) {
+    .modal-content {
+        padding: 15px;
+        width: 90%;
+    }
+
+    .modal-content h2 {
+        font-size: 1.25rem;
+    }
+}
+

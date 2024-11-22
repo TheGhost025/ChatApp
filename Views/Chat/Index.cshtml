@@ -4,9 +4,6 @@
 
 <div class="container">
     <!-- Search Bar for Searching New Users -->
-    <form asp-action="LogOut" asp-controller="Account" method="post">
-        <button type="submit" class="btn btn-danger">Log Out</button>
-    </form>
 
     <div class="search-bar-new">
         <input type="text" id="searchNewUserInput" placeholder="Search for new users..." />
@@ -27,6 +24,9 @@
             <img id="userImage" src="~/images/b3c5c832-0fc8-4618-9c4f-54bd05dffebd_Screenshot 2024-05-05 044508.png" alt="Profile" />
             <h3 id="userName">Mazen</h3>
             <!-- Toggle Friend Requests Button -->
+            <form asp-action="LogOut" asp-controller="Account" method="post">
+                <button type="submit" class="btn btn-danger">Log Out</button>
+            </form>
 
             <button id="toggle-friend-requests" class="toggle-button">
                 <i class="fa-solid fa-user-group" id="toggle-icon"></i>
@@ -132,7 +132,11 @@
 
         <div class="chat-input">
             <input type="text" id="messageInput" placeholder="Type a message">
-            <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
+            <!-- File Input Wrapper -->
+            <label for="fileInput" class="file-input-label">
+                📎 Attach
+                <input type="file" id="fileInput" accept="image/*,video/*,audio/*" />
+            </label>
             <button id="sendButton" class="btn-send">Send</button>
         </div>
     </div>
