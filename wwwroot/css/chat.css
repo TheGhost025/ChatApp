@@ -6,7 +6,7 @@
     font-size: 1rem;
     text-align: center;
     color: white;
-    background-color: #007bff;
+    background-color: #4CAF50;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -15,7 +15,7 @@
 }
 
     .toggle-button:hover {
-        background-color: #0056b3;
+        background-color: #388E3C;
         transform: scale(1.05);
     }
 
@@ -53,7 +53,7 @@
     position: fixed;
     top: -100px;
     width: 100%;
-    background-color: #f44336;
+    background-color: #4CAF50;
     color: white;
     padding: 15px;
     font-size: 16px;
@@ -94,15 +94,30 @@
     margin: 5px 0;
 }
 
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 .container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column; /* Default for smaller screens */
     height: 100vh;
     padding-top: 60px;
 }
 
+@media (min-width: 768px) {
+    .container {
+        flex-direction: row; /* Side-by-side layout for larger screens */
+    }
+}
+
 .search-bar-new {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -110,6 +125,7 @@
     background-color: #f4f4f4;
     border-bottom: 1px solid #ddd;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
 }
 
@@ -118,10 +134,12 @@
         padding: 10px;
         border-radius: 4px;
         border: 1px solid #ddd;
-        margin-right: 10px;
+        margin-bottom: 10px;
     }
 
     .search-bar-new button {
+        width: 100%;
+        margin-top: 10px;
         padding: 10px;
         background-color: #28a745;
         border: none;
@@ -134,15 +152,34 @@
             background-color: #218838;
         }
 
+    @media (min-width: 600px) {
+        .search-bar-new {
+            flex-wrap: nowrap;
+        }
+
+            .search-bar-new button {
+                width: auto; /* Inline button for larger screens */
+                margin-top: 0;
+            }
+    }
+
 /* Sidebar Animation */
 .sidebar {
-    width: 25%;
-    background-color: #f4f4f4;
+    width: 100%; /* Full width for smaller screens */
+    padding: 15px;
+    background-color: #f9f9f9;
+    color: #333;
     display: flex;
     flex-direction: column;
-    padding: 20px;
     border-right: 1px solid #ddd;
     animation: slideIn 0.5s ease-out;
+}
+
+@media (min-width: 768px) {
+    .sidebar {
+        width: 25%; /* Fixed width for tablets and larger screens */
+        padding: 20px;
+    }
 }
 
 @keyframes slideIn {
@@ -165,21 +202,28 @@
     /* Sidebar Profile Image Animation */
     .profile img {
         border-radius: 50%;
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         margin-bottom: 10px;
         transition: transform 0.3s ease-in-out;
+    }
+
+    @media (min-width: 768px) {
+        .profile img {
+            width: 80px;
+            height: 80px;
+        }
     }
 
         .profile img:hover {
             transform: rotate(360deg);
         }
 
-    .profile h3 {
-        font-size: 1.5rem;
-        color: #333;
-        margin-bottom: 20px;
-    }
+.profile h3 {
+    font-size: 1.5rem;
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
 
 
     .profile p {
@@ -204,7 +248,7 @@
         flex: 1;
         padding: 10px 15px;
         font-size: 1rem;
-        border: 1px solid #ddd;
+        border: 1px solid #4CAF50;
         border-radius: 6px;
         outline: none;
         transition: border-color 0.3s ease;
@@ -219,7 +263,7 @@
     .search-bar button {
         padding: 10px 15px;
         font-size: 1rem;
-        background-color: #007bff;
+        background-color: #4CAF50;
         color: white;
         border: none;
         border-radius: 6px;
@@ -228,7 +272,7 @@
     }
 
         .search-bar button:hover {
-            background-color: #0056b3;
+            background-color: #388E3C;
             transform: scale(1.05);
         }
 
@@ -240,6 +284,7 @@
 
 .tabs {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-around;
     margin-bottom: 15px;
 }
@@ -247,8 +292,10 @@
     /* Tab Animation */
     .tabs button {
         flex-grow: 1;
-        background-color: #e0e0e0;
+        background-color: #f9f9f9;
+        color: #333;
         padding: 10px;
+        margin: 5px;
         border: none;
         cursor: pointer;
         transition: background-color 0.3s ease, transform 0.2s;
@@ -260,7 +307,7 @@
         }
 
         .tabs button.active {
-            background-color: #007bff;
+            background-color: #4CAF50;
             color: white;
             animation: tabHighlight 0.4s;
         }
@@ -282,7 +329,7 @@
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 /* Friend, Group, Chat Item Animation */
@@ -324,22 +371,34 @@
 }
 
 .chat-input-container {
-    width: 75%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     background-color: #ffffff;
-    padding: 20px;
+    padding: 15px;
+}
+
+@media (min-width: 768px) {
+    .chat-input-container {
+        width: 75%; /* Adjust width for larger screens */
+    }
 }
 
 /* Smooth Scroll in Chat Window */
 .chat-window {
     flex-grow: 1;
-    padding: 15px;
+    padding: 10px;
     border: 1px solid #ddd;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     overflow-y: auto;
     background-color: #f9f9f9;
     scroll-behavior: smooth;
+}
+
+@media (min-width: 768px) {
+    .chat-window {
+        margin-bottom: 20px;
+    }
 }
 
 #messagesList {
@@ -384,12 +443,13 @@
 }
 
 .sent .message {
-    background-color: #dcf8c6;
+    background-color: #4CAF50;
     align-self: flex-end;
 }
 
 .received .message {
-    background-color: #ececec;
+    background-color: #f9f9f9;
+    color: #333;
     align-self: flex-start;
 }
 
@@ -411,7 +471,7 @@
         flex-grow: 1;
         padding: 10px;
         border-radius: 20px;
-        border: 1px solid #ddd;
+        border: 1px solid #4CAF50;
         margin-right: 10px;
     }
 
@@ -428,7 +488,7 @@
     /* Chat Input Button Animation */
     .chat-input .btn-send {
         padding: 10px 20px;
-        background-color: #007bff;
+        background-color: #4CAF50;
         border: none;
         color: white;
         border-radius: 20px;
@@ -437,7 +497,7 @@
     }
 
         .chat-input .btn-send:hover {
-            background-color: #0056b3;
+            background-color: #388E3C;
             transform: scale(1.1);
         }
 
@@ -458,17 +518,24 @@
 
 /* General Friend Requests Section Styling */
 .friend-requests {
-    position: fixed;
+    position: static;
     background-color: #ffffff;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin: 20px 0;
-    max-width: 600px;
+    margin: 10px auto;
+    max-width: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+@media (min-width: 768px) {
+    .friend-requests {
+        position: fixed; /* Fixed for larger screens */
+        max-width: 600px;
+    }
 }
 
     .friend-requests h3 {
@@ -481,6 +548,7 @@
 /* Individual Friend Request Item Styling */
 .friend-request-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -501,6 +569,7 @@
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #007bff;
+    margin: 0 auto 10px;
 }
 
 /* Friend Request Info Section */
@@ -509,6 +578,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    text-align: center;
 }
 
     .friend-request-info p {
@@ -522,6 +592,20 @@
         color: #777;
         font-size: 0.9rem;
     }
+
+@media (min-width: 768px) {
+    .friend-request-item {
+        flex-direction: row; /* Row layout for larger screens */
+    }
+
+    .friend-request-profile img {
+        margin: 0; /* Remove centering margin */
+    }
+
+    .friend-request-info {
+        text-align: left; /* Left-align text for larger screens */
+    }
+}
 
 /* Friend Request Actions Buttons */
 .friend-request-actions {

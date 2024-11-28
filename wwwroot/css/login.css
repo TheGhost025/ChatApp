@@ -36,11 +36,21 @@ body {
     border-radius: 20px;
     padding: 10px 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dfe6e9; /* Light border */
+    background-color: #f9f9f9; /* Subtle background */
 }
+
+    .form-control:focus {
+        border-color: #74b9ff; /* Highlight border on focus */
+        outline: none;
+        box-shadow: 0 0 5px rgba(116, 185, 255, 0.5);
+    }
 
 .form-label {
     font-weight: bold;
     color: #333;
+    margin-bottom: 5px;
+    display: block;
 }
 
 /* Button Styling */
@@ -49,7 +59,11 @@ body {
     border: none;
     border-radius: 20px;
     padding: 10px 20px;
+    color: #ffffff;
+    font-weight: bold;
     transition: transform 0.2s, background 0.2s;
+    cursor: pointer;
+    text-align: center;
 }
 
     .btn-primary:hover {
@@ -60,7 +74,18 @@ body {
 .btn-secondary {
     margin-top: 10px;
     border-radius: 20px;
+    background: #dfe6e9; /* Light gray background */
+    color: #2d3436;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
 }
+
+    .btn-secondary:hover {
+        background: #b2bec3; /* Darker gray on hover */
+    }
 
 /* Fade-in Animation */
 @keyframes fadeIn {
@@ -85,5 +110,22 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Additional Responsive Tweaks */
+@media (max-width: 768px) {
+    .login-card,
+    .register-card {
+        padding: 20px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 8px 16px;
+    }
+
+    .form-control {
+        padding: 8px 12px;
     }
 }
